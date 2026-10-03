@@ -1,0 +1,2147 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WerkFlow – Firmenverwaltung</title>
+<style>
+.expense-comparison-card{overflow:auto}.expense-comparison-card .table input,.expense-comparison-card .table select{width:100%;min-width:90px;box-sizing:border-box}.expense-comparison-card td{vertical-align:middle}.invoice-table-card{overflow:auto}.invoice-table-card .table th,.invoice-table-card .table td{white-space:nowrap}
+:root{--bg:#151218;--panel:#241e29;--panel2:#302638;--line:#514557;--text:#f7f1e7;--muted:#c0b6c4;--accent:#e58ab8;--accent2:#9b6de3;--danger:#ef7272;--warn:#e7c15b;--success:#72c49a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer;border:0}
+.app{display:flex;min-height:100vh}.side{width:240px;background:linear-gradient(180deg,#19151d 0%,#28202d 100%);border-right:1px solid var(--line);padding:22px 14px;position:fixed;inset:0 auto 0 0}
+.logo{font-size:21px;font-weight:800;padding:8px 10px 25px}.logo span{color:var(--accent2)}
+.nav button{display:block;width:100%;text-align:left;background:transparent;color:var(--muted);padding:12px;border-radius:10px;margin:4px 0}.nav button.active,.nav button:hover{background:linear-gradient(90deg,rgba(230,160,79,.18),rgba(200,107,74,.12));color:var(--text);box-shadow:inset 3px 0 0 var(--accent)}
+.main{margin-left:240px;width:calc(100% - 240px);padding:28px;max-width:1500px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}.top h1{margin:0;font-size:28px}.sub{color:var(--muted);margin-top:4px}
+.btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#1b1510;padding:10px 15px;border-radius:9px;font-weight:700}.btn.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}.btn.danger{background:#3a1820;color:#fecdd3}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.card{background:linear-gradient(145deg,rgba(36,30,41,.98),rgba(48,38,56,.96));border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.18)}.stat{font-size:25px;font-weight:800;margin-top:5px}.muted{color:var(--muted)}.positive{color:var(--success)}.warning{color:var(--warn)}
+.section{margin-top:22px}.section h2{font-size:17px;margin:0 0 12px}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:13px 10px;border-bottom:1px solid var(--line);text-align:left}.table th{color:var(--muted);font-size:12px;text-transform:uppercase}.badge{padding:4px 8px;border-radius:99px;background:rgba(240,138,60,.14);color:var(--accent);font-size:12px}.badge.yellow{background:rgba(255,209,102,.12);color:var(--warn)}.badge.red{background:rgba(255,107,129,.12);color:#ff7d91}.badge.orange{background:rgba(255,180,70,.12);color:#ffb84d}.badge.green{background:rgba(85,230,165,.12);color:#55e6a5}.status-select{min-width:150px;font-weight:700}.status-select.status-red{border-color:#ef4444;color:#ef4444}.status-select.status-orange{border-color:#f97316;color:#f97316}.status-select.status-yellow{border-color:#eab308;color:#eab308}.status-select.status-green{border-color:#22c55e;color:#22c55e}.status-select option{font-weight:700}
+/* Flüssiger Seitenwechsel */
+.view{display:none}
+.view.active{display:block}
+.main.view-transition-left .view.active{animation:wfPageLeft .54s cubic-bezier(.16,1,.3,1) both}
+.main.view-transition-right .view.active{animation:wfPageRight .54s cubic-bezier(.16,1,.3,1) both}
+@keyframes wfPageLeft{
+  from{opacity:0;transform:translate3d(90px,0,0) scale(.97);filter:blur(4px)}
+  45%{opacity:.85;transform:translate3d(-8px,0,0) scale(1.005);filter:blur(1px)}
+  to{opacity:1;transform:translate3d(0,0,0) scale(1);filter:blur(0)}
+}
+@keyframes wfPageRight{
+  from{opacity:0;transform:translate3d(-90px,0,0) scale(.97);filter:blur(4px)}
+  45%{opacity:.85;transform:translate3d(8px,0,0) scale(1.005);filter:blur(1px)}
+  to{opacity:1;transform:translate3d(0,0,0) scale(1);filter:blur(0)}
+}
+
+.toolbar{display:flex;gap:10px;justify-content:space-between;margin-bottom:15px}.toolbar .left{display:flex;gap:8px}
+input,select,textarea{background:#171412;border:1px solid var(--line);color:var(--text);padding:10px;border-radius:8px;outline:none;width:100%}.form{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.form .full{grid-column:1/-1}.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:12px;z-index:5;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}.modal.open{display:flex}.modalbox{scrollbar-width:thin}.modalbox{background:var(--panel);border:1px solid var(--line);border-radius:16px;width:min(600px,100%);padding:22px;height:auto;max-height:calc(100dvh - 24px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:40px;scroll-padding-bottom:40px}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.close{background:transparent;color:var(--muted);font-size:22px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap}.part-image-tools{display:flex;gap:8px;flex-wrap:wrap}.part-image-tools .btn{flex:1 1 140px}.image-preview-wrap{position:relative;margin-top:10px}.image-preview-wrap img{width:100%;max-height:260px;object-fit:contain;border:1px solid var(--line);border-radius:10px;background:#171412;touch-action:pan-y}
+.timer{display:flex;align-items:center;gap:8px}.time{font-variant-numeric:tabular-nums;font-size:12px;color:var(--accent)}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.customer{display:flex;justify-content:space-between;gap:15px}.customer strong{font-size:16px}.amount{font-weight:800}.negative{color:#fda4af}.search{max-width:300px}.customer-card{cursor:pointer;transition:.15s transform}.customer-card:hover{transform:translateY(-1px);border-color:var(--accent)}.customer-card strong{font-size:14px}.customer-summary{display:flex;justify-content:space-between;gap:15px;align-items:flex-start}.customer-vehicles{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.customer-detail-block{margin:14px 0;padding:14px;background:var(--panel2);border:1px solid var(--line);border-radius:10px}.vehicle-item{padding:12px 0;border-bottom:1px solid var(--line)}.vehicle-item:last-child{border-bottom:0}.vehicle-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.vehicle-grid .full{grid-column:1/-1}.customer-note{min-height:190px;resize:vertical}.detail-section-title{margin:18px 0 8px;font-size:16px}.compact-customer-name{font-size:14px;font-weight:800}
+@media(max-width:900px){.side{width:72px}.logo{font-size:0}.logo span{font-size:20px}.nav button{font-size:0;text-align:center}.nav button::first-letter{font-size:18px}.main{margin-left:72px;width:calc(100% - 72px);padding:18px}.grid{grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.modal{align-items:flex-start;padding:8px 8px 78px}.modalbox{width:100%;max-height:calc(100dvh - 20px);padding:16px;border-radius:14px}.grid{grid-template-columns:1fr 1fr}.cards,.form{grid-template-columns:1fr}.top{align-items:flex-start;gap:12px;flex-direction:column}.main{padding:14px}.table{font-size:12px}.table th:nth-child(3),.table td:nth-child(3){display:none}}
+
+/* Übersichtlichere Kundenauswahl */
+.customer-picker{display:grid;grid-template-columns:1fr;gap:7px;margin-top:7px;max-height:300px;overflow:auto;padding:3px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.10)}
+.customer-choice{display:flex;align-items:center;gap:10px;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:11px;border-radius:11px;min-width:0}
+.customer-choice:hover,.customer-choice.selected{border-color:var(--accent);box-shadow:0 0 0 1px rgba(214,243,107,.18);background:rgba(214,243,107,.08)}
+.customer-choice .avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#20171d;font-weight:900;flex:0 0 auto}
+.customer-choice .customer-choice-text{min-width:0}.customer-choice strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.customer-choice small{display:block;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.customer-search{margin-top:6px;margin-bottom:2px;min-height:44px}.customer-choice .customer-check{margin-left:auto;color:var(--accent);font-size:18px;font-weight:900}.customer-choice{min-height:58px}.customer-choice-text small{font-size:11px}
+.order-picker{display:grid;gap:7px;max-height:220px;overflow:auto;margin-top:7px}.order-choice{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:10px}.order-choice.selected{border-color:var(--accent);background:rgba(214,243,107,.08)}
+@media(max-width:600px){.customer-picker{grid-template-columns:1fr;max-height:260px}.customer-choice{min-height:60px}.order-picker{max-height:240px}}
+/* Mobile-first private area */
+.login{position:fixed;inset:0;background:#151311;display:flex;align-items:center;justify-content:center;padding:20px;z-index:20}
+.loginbox{width:min(430px,100%);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:26px;box-shadow:0 20px 60px #0008}
+.loginbox h1{margin:0 0 5px}.loginbox p{color:var(--muted);margin:0 0 22px}
+.pin{font-size:24px;letter-spacing:7px;text-align:center}.users{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.userbtn{padding:15px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);color:var(--text);font-weight:700}.userbtn:hover{border-color:var(--accent)}
+.current-user{color:var(--muted);font-size:12px}.audit-entry{padding:12px 0;border-bottom:1px solid var(--line)}.audit-entry strong{color:var(--text)}
+@media(max-width:600px){body{font-size:13px}.side{position:fixed;bottom:0;top:auto;left:0;width:100%;height:64px;padding:6px 5px;z-index:10;border-right:0;border-top:1px solid var(--line)}.logo{display:none}.nav{display:grid;grid-template-columns:repeat(8,1fr);height:100%}.nav button{margin:0;padding:4px 2px;text-align:center;font-size:10px;border-radius:8px;line-height:1.15}.nav button:first-letter{font-size:17px}.main{margin-left:0;width:100%;padding:14px 12px 82px}.top h1{font-size:24px}.top .btn{width:100%}.grid{grid-template-columns:1fr 1fr;gap:9px}.card{padding:14px}.stat{font-size:21px}.table{display:block;overflow-x:auto;white-space:nowrap}.cards{grid-template-columns:1fr}.toolbar{display:block}.search{max-width:none}.form{grid-template-columns:1fr}.form .full{grid-column:auto}.loginbox{padding:22px}}
+@media(max-width:700px){#orderDetail .section[style*="grid-template-columns"]{display:block!important}#orderDetail .grid{grid-template-columns:1fr 1fr!important}.loginbox{max-height:95vh;overflow:auto}}
+
+/* Mobile-Optimierung */
+html,body{min-height:100%;overflow-x:hidden}
+body{-webkit-tap-highlight-color:transparent}
+.main{will-change:transform,opacity;transform-origin:center top;backface-visibility:hidden}
+.view{min-height:calc(100vh - 90px)}
+.part-card-image{width:100%;height:100%;object-fit:cover;cursor:zoom-in;display:block;-webkit-user-drag:none;user-select:none}
+.inventory-filter-hint{font-size:11px;color:var(--muted);margin:-6px 0 6px 2px}
+.part-image-viewer-box{max-width:760px;width:min(94vw,760px)}
+.part-image-viewer-content{display:flex;align-items:center;justify-content:center;min-height:220px;max-height:68vh;background:#151311;border-radius:12px;overflow:hidden}
+#partImageViewerImg{display:block;max-width:100%;max-height:68vh;width:auto;height:auto;object-fit:contain}
+@media (max-width:800px){
+  body{font-size:15px;padding-bottom:env(safe-area-inset-bottom)}
+  .main{padding:12px 10px 90px}
+  .nav{position:sticky;top:0;z-index:20;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{min-height:46px;flex:0 0 auto;padding:9px 13px;font-size:13px}
+  .cards{grid-template-columns:1fr !important;gap:10px}
+  .card{border-radius:14px;padding:13px}
+  .toolbar{flex-direction:column;align-items:stretch;gap:8px}
+  .toolbar .left,.toolbar .right{width:100%}
+  input,select,textarea{min-height:44px;font-size:16px}
+  .btn{min-height:42px;padding:9px 12px}
+  .actions{gap:8px;flex-wrap:wrap}
+  .actions .btn{flex:1 1 140px}
+  table{font-size:13px}
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .modal{padding:10px}
+  .modalbox{width:100%;max-height:92vh;border-radius:18px}
+  .form{grid-template-columns:1fr !important}
+  .full{grid-column:1/-1}
+  .part-image-viewer-content{min-height:180px;max-height:65vh}
+  #partImageViewerImg{max-height:62vh}
+}
+@media (prefers-reduced-motion:reduce){
+  .main.view-transition-left .view.active,.main.view-transition-right .view.active{animation-duration:.01ms !important}
+}
+.vehicle-add-small{font-size:10px!important;padding:4px 7px!important;margin-top:4px}.vehicle-details summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}.vehicle-details summary::-webkit-details-marker{display:none}
+.vehicle-add-small{font-size:10px!important;padding:4px 8px!important;margin-top:4px}.vehicle-add-empty{margin-top:10px}.vehicle-empty{text-align:center;padding:8px 0}.part-main-actions{display:flex;gap:8px;flex-wrap:wrap}.part-main-actions .btn{flex:1;min-width:0}.part-sub-actions{display:flex;gap:8px;flex-wrap:wrap}.part-sub-actions .btn{flex:1;min-width:0}
+
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 85% 5%,rgba(240,138,60,.08),transparent 28%),radial-gradient(circle at 15% 95%,rgba(216,95,54,.06),transparent 30%);z-index:-1}
+
+/* Teil-hinzufügen: immer vollständig erreichbar und auf Mobilgeräten sauber scrollbar */
+#partModal{align-items:flex-start;padding:8px;overflow-y:auto}
+#partModal .modalbox{height:calc(100dvh - 16px);max-height:calc(100dvh - 16px);overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:72px}
+#partModal form{padding-bottom:28px}
+#partModal .actions{position:sticky;bottom:0;background:linear-gradient(180deg,transparent,var(--panel) 22%);padding-top:18px;margin-left:-4px;margin-right:-4px;padding-left:4px;padding-right:4px}
+
+/* Kundenauswahl: eigenes, übersichtliches Auswahlfenster */
+.customer-trigger{cursor:pointer;min-height:46px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.customer-trigger .placeholder{color:var(--muted)}
+.customer-trigger .chosen{font-weight:800;color:var(--text)}
+#customerPickerModal{z-index:30}
+/* Kompakte Kundenauswahl beim Auftrag buchen */
+#customerPickerModal.book-part-picker .modalbox{width:min(480px,100%);}
+#customerPickerModal.book-part-picker .customer-picker-list{gap:5px;padding:2px;}
+#customerPickerModal.book-part-picker .customer-picker-card{grid-template-columns:34px 1fr auto;gap:8px;padding:7px 9px;border-radius:9px;}
+#customerPickerModal.book-part-picker .customer-picker-avatar{width:34px!important;height:34px!important;font-size:12px;}
+#customerPickerModal.book-part-picker .customer-picker-card strong{font-size:13px;}
+#customerPickerModal.book-part-picker .customer-picker-card small{font-size:10px;margin-top:1px;}
+#customerPickerModal.book-part-picker .customer-picker-check{font-size:16px;}
+@media(max-width:600px){#customerPickerModal.book-part-picker .modalbox{max-height:calc(100dvh - 12px);padding:12px;}#customerPickerModal.book-part-picker .customer-picker-card{grid-template-columns:32px 1fr auto;padding:6px 8px;}#customerPickerModal.book-part-picker .customer-picker-avatar{width:32px!important;height:32px!important;}}
+#customerPickerModal .modalbox{width:min(620px,100%);max-height:calc(100dvh - 24px);display:flex;flex-direction:column}
+.customer-picker-search{margin-bottom:12px;min-height:46px}
+.customer-picker-list{display:grid;gap:9px;overflow:auto;padding:2px;min-height:0}
+.customer-picker-card{display:grid;grid-template-columns:46px 1fr auto;gap:12px;align-items:center;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:13px;border-radius:13px}
+.customer-picker-card:hover,.customer-picker-card.selected{border-color:var(--accent);background:rgba(229,138,184,.10);box-shadow:0 0 0 1px rgba(229,138,184,.14)}
+.customer-picker-avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#241827;font-weight:900;font-size:15px}
+.customer-picker-card strong{display:block;font-size:15px}.customer-picker-card small{display:block;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.customer-picker-check{font-size:20px;color:var(--accent);font-weight:900}
+@media(max-width:600px){#partModal{padding:0}#partModal .modalbox{height:100dvh;max-height:100dvh;border-radius:0;padding:16px 14px 80px}#partModal .actions{margin-bottom:8px}.customer-picker-card{grid-template-columns:42px 1fr auto;padding:12px}.customer-picker-avatar{width:42px;height:42px}}
+
+
+.work-person .work-share{min-width:48px;text-align:center;font-weight:700;color:var(--accent);}
+.order-position-group{border:1px solid var(--line);border-radius:12px;background:var(--panel2);overflow:hidden;margin-bottom:10px;}
+.order-position-group-title{display:flex;justify-content:space-between;align-items:center;padding:9px 11px;background:var(--soft);border-bottom:1px solid var(--line);font-size:13px;}
+.order-position-group-title>span{min-width:22px;text-align:center;border-radius:999px;padding:2px 7px;background:var(--card);font-size:11px;}
+.order-position-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 11px;border-bottom:1px solid var(--line);}
+.order-position-row:last-child{border-bottom:0;}
+.order-position-actions{display:flex;align-items:center;gap:8px;white-space:nowrap;}
+.order-position-empty{padding:10px 11px;font-size:12px;}
+@media(max-width:600px){.order-position-row{align-items:flex-start}.order-position-actions{flex-direction:column;align-items:flex-end;gap:5px}.order-position-group-title{padding:8px 10px;}}
+</style>
+
+<style>
+.invoice-actions{display:flex;gap:8px;flex-wrap:wrap}
+.invoice-detail{max-width:900px;margin:0 auto;background:#fff;color:#111;padding:42px;border-radius:8px}
+.invoice-detail h1{color:#111;margin-top:0}.invoice-detail .muted{color:#666}
+.invoice-head{display:flex;justify-content:space-between;gap:25px;border-bottom:2px solid #ddd;padding-bottom:20px;margin-bottom:20px}
+.invoice-lines{width:100%;border-collapse:collapse}.invoice-lines th,.invoice-lines td{padding:9px;border-bottom:1px solid #ddd;text-align:left}.invoice-lines th{background:#f4f4f4}
+.invoice-total{text-align:right;font-size:18px;margin-top:18px}.invoice-total strong{font-size:24px}
+.part-img-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.camera-preview{width:100%;max-height:240px;object-fit:cover;border-radius:10px;margin-top:8px;display:none}
+@media print{
+  body{background:#fff!important}.side,.top,.no-print,.modal,.view:not(#invoiceDetailView){display:none!important}
+  .main{margin:0!important;width:100%!important;padding:0!important;max-width:none!important}
+  #invoiceDetailView{display:block!important}.invoice-detail{box-shadow:none!important;border:0!important;margin:0!important;max-width:none!important}
+}
+.toast{position:fixed;right:18px;bottom:18px;background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:11px 14px;border-radius:10px;box-shadow:0 10px 30px #0006;z-index:50;display:none}.toast.show{display:block}@media(max-width:600px){.toast{left:12px;right:12px;bottom:76px;text-align:center}}
+
+</style>
+
+
+<style>
+/* Zusätzlicher Abstand unter „Fahrzeug hinzufügen“ */
+#customerVehicleSection, .customer-vehicle-section, .vehicle-add-section {
+  margin-bottom: 1cm !important;
+}
+#customerVehicleSection + *, .customer-vehicle-section + *, .vehicle-add-section + * {
+  margin-top: 1cm !important;
+}
+
+</style>
+
+<style>
+.part-edit-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.part-edit-actions .btn{width:100%}
+
+.dashboard-hero{background:linear-gradient(135deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:18px;box-shadow:0 12px 30px #0002;position:relative;overflow:hidden}.dashboard-hero:after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-55px;top:-65px;background:var(--accent);opacity:.10}.dashboard-hero h1{margin:0 0 6px}.dashboard-hero p{margin:0;color:var(--muted)}.dashboard-kpi{transition:transform .18s ease,box-shadow .18s ease}.dashboard-kpi:hover{transform:translateY(-2px);box-shadow:0 12px 28px #0002}.work-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:8px 0 16px}.work-person{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}.work-summary-title{font-weight:700;margin-top:12px}.compare-actions{display:flex;gap:6px;flex-wrap:wrap}.expense-comparison-card .table input,.expense-comparison-card .table select{min-width:100px}.expense-comparison-card .table td{vertical-align:middle}.part-number{font-size:12px;margin-top:2px}
+.expense-comparison-card + *{} .invoice-status-select{font-weight:800;border:1px solid var(--line);background:var(--panel2)}
+.invoice-status-select.invoice-status-paid{color:#22c55e;border-color:#22c55e}
+.invoice-status-select.invoice-status-open{color:#ef4444;border-color:#ef4444}
+.invoice-status-select.invoice-status-orange{color:#f97316;border-color:#f97316}
+.invoice-status-select option{font-weight:800}
+.paid-invoices-section h2{color:var(--text)}
+@media(max-width:800px){.expense-comparison-card{overflow-x:auto}#expenseComparison .grid{grid-template-columns:1fr!important}}
+</style>
+
+<style>
+.invoice-table-card{overflow:visible}.invoice-table-card .table{width:100%}.dashboard-hero-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}.dashboard-order-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}.dashboard-order-item{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px;cursor:pointer}.dashboard-order-item .row{display:flex;justify-content:space-between;gap:10px;align-items:center}.dashboard-order-item .desc{font-weight:700;margin:5px 0}@media(max-width:800px){.invoice-table-card{padding:10px}.invoice-table-card .table{display:block;overflow:visible;white-space:normal}.invoice-table-card .table thead{display:none}.invoice-table-card .table tbody,.invoice-table-card .table tr,.invoice-table-card .table td{display:block;width:100%}.invoice-table-card .table tr{background:var(--panel2);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;padding:10px}.invoice-table-card .table td{border:0;padding:5px 2px;white-space:normal}.invoice-table-card .table td:before{content:attr(data-label);display:inline-block;color:var(--muted);font-size:11px;text-transform:uppercase;font-weight:700;margin-right:7px}.invoice-table-card .table td:last-child{padding-top:10px}.dashboard-hero{padding:16px}.dashboard-hero-actions{display:grid;grid-template-columns:1fr 1fr}.dashboard-hero-actions .btn{width:100%}.dashboard-order-list{grid-template-columns:1fr}}
+
+</style>
+
+<style>
+@media(max-width:600px){.dashboard-hero h1{font-size:21px}.dashboard-hero p{font-size:13px}}
+
+</style>
+<style>
+.vehicle-papers-block{margin-top:2px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
+.vehicle-images{display:flex;gap:8px;flex-wrap:wrap;margin:7px 0}.vehicle-image-thumb{position:relative;width:120px;height:88px}.vehicle-image-thumb img{width:100%;height:100%;object-fit:cover;border-radius:9px;border:1px solid var(--line);cursor:zoom-in}.vehicle-image-delete{position:absolute!important;top:3px;right:3px;min-height:30px!important;padding:2px 7px!important}.vehicle-image-hint{font-size:11px;margin-top:5px}.vehicle-image-viewer-box{max-width:800px;width:min(94vw,800px)}.vehicle-image-viewer-content{display:flex;align-items:center;justify-content:center;min-height:220px;max-height:68vh;background:#151311;border-radius:12px;overflow:hidden}.vehicle-image-viewer-content img{max-width:100%;max-height:65vh;object-fit:contain}
+@media(max-width:800px){
+  .invoice-table-card .table tbody{display:grid!important;grid-template-columns:1fr 1fr;gap:9px}.invoice-table-card .table tr{margin:0!important;min-width:0;overflow:hidden}.invoice-table-card .table td:before{font-size:9px}.invoice-table-card .table td{font-size:12px}.invoice-table-card .table td[data-label="Aktionen"] .btn{width:100%}
+  #orders .card{padding:9px;overflow:visible}#orders .toolbar{display:block;margin-bottom:10px}#orders .toolbar .left{display:grid;grid-template-columns:1fr;gap:8px;width:100%}#orders .toolbar .search,#orders .toolbar select{width:100%;min-width:0;min-height:44px;box-sizing:border-box}.view#orders .table{display:block!important;white-space:normal!important;overflow:visible!important}.view#orders .table thead{display:none}.view#orders .table tbody,.view#orders .table tr,.view#orders .table td{display:block;width:100%;box-sizing:border-box}.view#orders .table tr{background:var(--panel2);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;padding:11px;box-shadow:0 1px 2px rgba(0,0,0,.08)}.view#orders .table td{border:0;padding:5px 0;min-width:0}.view#orders .table td:before{content:attr(data-label);display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.04em;font-weight:800;margin-bottom:3px}.view#orders .table td[data-label="Nr."]{padding-top:0}.view#orders .table td[data-label="Nr."] .btn{width:100%;min-height:40px}.view#orders .table td[data-label="Kunde"],.view#orders .table td[data-label="Beschreibung"]{overflow-wrap:anywhere}.view#orders .table td[data-label="Status"] select{width:100%;min-height:44px}.view#orders .timer{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;width:100%}.view#orders .timer .time{min-width:0;font-variant-numeric:tabular-nums}.view#orders .timer .btn{min-width:48px;min-height:42px}.view#orders .table td[data-label="Summe"]{font-weight:800;font-size:15px}.view#orders .table td[data-label="Aktion"]{padding-bottom:0}.view#orders .table td[data-label="Aktion"] .btn{width:100%;min-height:42px}
+  .vehicle-images{gap:6px}.vehicle-image-thumb{width:calc(50% - 3px);height:105px}.vehicle-image-viewer-content{min-height:180px;max-height:65vh}.vehicle-image-viewer-content img{max-height:60vh}
+}
+@media(max-width:380px){.invoice-table-card .table tbody{grid-template-columns:1fr}.vehicle-image-thumb{height:95px}}
+
+</style>
+<style>
+.stock-sales-filter{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px}.stock-sales-filter label{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);padding:9px 12px;border-radius:9px;cursor:pointer;font-weight:700}.stock-sales-filter input{width:auto;min-height:18px;accent-color:var(--accent)}.image-download-btn{display:block;width:100%;margin-top:6px;padding:5px 8px;font-size:12px;text-align:center;text-decoration:none}.part-card-actions .part-main-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}@media(max-width:600px){.stock-sales-filter{display:grid;grid-template-columns:1fr 1fr}.stock-sales-filter label{justify-content:center}.part-card-actions .part-main-actions{grid-template-columns:1fr}}
+
+</style>
+
+<style>
+@media(max-width:700px){
+  #expenseComparison .top{margin-bottom:12px}
+  #expenseComparison .top h1{font-size:22px}
+  #expenseComparison .top .btn{width:auto;align-self:stretch}
+  #expenseComparison .grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
+  #expenseComparison .grid .card{padding:11px 10px;min-width:0}
+  #expenseComparison .grid .muted{font-size:11px;line-height:1.2}
+  #expenseComparison .grid .stat{font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #expenseComparison .expense-comparison-card{overflow:visible;padding:10px}
+  #expenseComparison .table-wrap{overflow:visible}
+  #expenseComparison .table{display:block!important;white-space:normal!important;overflow:visible!important}
+  #expenseComparison .table thead{display:none}
+  #expenseComparison .table tbody,#expenseComparison .table tr,#expenseComparison .table td{display:block;width:100%;box-sizing:border-box}
+  #expenseComparison .table tr{background:var(--panel2);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;padding:10px}
+  #expenseComparison .table td{border:0;padding:4px 0;min-width:0}
+  #expenseComparison .table td:before{content:attr(data-label);display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.04em;font-weight:800;margin-bottom:3px}
+  #expenseComparison .table td input,#expenseComparison .table td select{width:100%;min-width:0;min-height:42px;padding:9px;font-size:15px}
+  #expenseComparison .table td[data-label="Gesamt"]{font-size:16px;padding-top:7px}
+  #expenseComparison .compare-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:5px}
+  #expenseComparison .compare-actions .btn{width:100%;min-height:42px;padding:9px 7px}
+}
+@media(max-width:380px){
+  #expenseComparison .grid{grid-template-columns:1fr!important}
+  #expenseComparison .compare-actions{grid-template-columns:1fr}
+}
+
+</style>
+
+<style id="warm-theme-final">
+:root{--bg:#171513!important;--panel:#24201d!important;--panel2:#302a25!important;--line:#4a4038!important;--text:#fff8ed!important;--muted:#c4b6a5!important;--accent:#f08a3c!important;--accent2:#d85f36!important;--danger:#ef6b73!important;--warn:#e8b44f!important;--success:#68c48a!important}
+body{background:var(--bg)!important;color:var(--text)!important}
+body:before{background:radial-gradient(circle at 85% 5%,rgba(240,138,60,.10),transparent 28%),radial-gradient(circle at 15% 95%,rgba(216,95,54,.08),transparent 30%)!important}
+.side{background:linear-gradient(180deg,#19151d 0%,#28202d 100%)!important;border-right-color:var(--line)!important}
+.nav button.active,.nav button:hover{background:linear-gradient(90deg,rgba(240,138,60,.20),rgba(216,95,54,.12))!important;box-shadow:inset 3px 0 0 var(--accent)!important}
+.btn{background:linear-gradient(135deg,#f08a3c,#d85f36)!important;color:#1b1510!important}
+.card,.dashboard-hero{background:linear-gradient(145deg,#24201d,#302a25)!important;border-color:var(--line)!important}
+.dashboard-hero:after{background:var(--accent)!important}
+input,select,textarea{background:#171412!important;border-color:var(--line)!important;color:var(--text)!important}
+.badge{background:rgba(240,138,60,.14)!important;color:#f5a15d!important}
+
+</style>
+
+<style id="order-detail-updates">
+.detail-part-results{display:grid;gap:6px;max-height:220px;overflow:auto;}
+.detail-part-result{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer;}
+.detail-part-result span{font-size:12px;color:var(--muted);text-align:right;}
+.detail-part-selected{padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--soft);} 
+#orderNotes{width:100%;min-height:120px;resize:vertical;}
+@media(max-width:640px){.detail-part-result{align-items:flex-start;flex-direction:column}.detail-part-result span{text-align:left}.detail-part-results{max-height:180px}}
+</style>
+</head>
+<body><noscript><div style="padding:16px;background:#351923;color:#fda4af;text-align:center">WerkFlow benötigt JavaScript, um die Anwendung auszuführen.</div></noscript>
+
+<div class="login" id="loginScreen">
+  <div class="loginbox">
+    <div class="logo" style="padding:0 0 18px;font-size:21px">Werk<span>Flow</span></div>
+    <h1>Privater Bereich</h1>
+    <p>Passwort eingeben.</p>
+    <input id="passwordInput" class="pin" type="password" placeholder="••••••••" autocomplete="off">
+    <button class="btn" style="width:100%;margin-top:12px" onclick="checkPassword()">Weiter</button>
+    <div id="loginError" style="color:var(--danger);margin-top:10px;text-align:center"></div>
+  </div>
+</div>
+<div class="app">
+<aside class="side">
+  <div class="logo">Werk<span>Flow</span></div>
+  <nav class="nav">
+    <button class="active" onclick="showView('dashboard',this)">⌂ Dashboard</button>
+    <button onclick="showView('orders',this)">▣ Aktuelle Aufträge</button>
+    <button onclick="showView('todos',this)">☑ To-Do</button>
+    <button onclick="showView('inventory',this)">◈ Kundenlager</button>
+    <button onclick="showView('stockSales',this)">◈ Lager/Verkauf</button>
+    <button onclick="showView('customers',this)">♙ Kundenstamm</button>
+    <button onclick="showView('invoices',this)">▤ Rechnungen</button><button onclick="showView('expenseComparison',this)">⇄ Ausgabenvergleich</button><button onclick="showView('audit',this)">◷ Protokoll</button>
+  </nav>
+</aside>
+<main class="main">
+<section id="dashboard" class="view active"><div class="top"><div><h1>Dashboard</h1><div class="sub"><span class="current-user" id="currentUserLabel"></span></div></div></div>
+  <div class="grid">
+    <div class="card dashboard-kpi"><div class="muted">Offene Aufträge</div><div class="stat" id="statOrders">3</div></div>
+    <div class="card dashboard-kpi"><div class="muted">Offene Rechnungen</div><div class="stat warning" id="statInvoices">2.840 €</div></div>
+    <div class="card dashboard-kpi"><div class="muted">Kunden</div><div class="stat" id="statCustomers">4</div></div>
+    <div class="card dashboard-kpi"><div class="muted">Fahrzeuge</div><div class="stat" id="statVehicles">0</div></div>
+    <div class="card"><div class="muted">Kundenlager-Teile</div><div class="stat" id="statParts">0</div></div>
+    <div class="card"><div class="muted">Kundenlagerwert</div><div class="stat positive" id="statStock">4.250 €</div></div>
+  <div class="card dashboard-kpi"><div class="muted">Abgeschlossene Aufträge</div><div class="stat" id="statCompletedOrders">0</div></div>
+  <div class="card dashboard-kpi"><div class="muted">Offene Auftragswerte</div><div class="stat" id="statOpenValue">0,00 €</div></div>
+  </div>
+<div class="section card"><div class="top" style="margin-bottom:10px"><h2 style="margin:0">Aktuelle Aufträge</h2></div><div id="dashOrders" class="dashboard-order-list"></div></div>
+</section>
+
+<section id="orders" class="view">
+  <div class="top"><div><h1>Aktuelle Aufträge</h1></div><button class="btn" onclick="openModal('orderModal')">Auftrag erstellen</button></div>
+  <div class="toolbar"><div class="left"><input id="orderSearch" class="search" placeholder="Auftrag oder Kunde suchen…" oninput="renderOrders(this.value)"><select id="orderFilter" onchange="renderOrders(document.getElementById('orderSearch').value)"><option value="all">Alle Aufträge</option><option value="not-finished" selected>Offene Aufträge</option></select></div></div>
+  <div class="card"><table class="table"><thead><tr><th>Nr.</th><th>Kunde</th><th>Beschreibung</th><th>Status</th><th>Timer</th><th>Summe</th></tr></thead><tbody id="ordersTable"></tbody></table></div>
+</section>
+
+
+<section id="todos" class="view">
+  <div class="top"><div><h1>To-Do</h1><div class="sub">Offene Aufträge und fällige Lager/Verkauf-Teile werden automatisch angezeigt.</div></div><button class="btn" onclick="openTodoModal()">+ To-Do hinzufügen</button></div>
+  <div class="toolbar"><div class="left"><select id="todoAssigneeFilter" onchange="renderTodos()" aria-label="To-Do Filter"><option value="Beide" selected>Alle</option><option value="Benjamin">Benjamin</option><option value="Malik">Malik</option></select></div></div>
+  <div id="todoList" class="todo-list"></div>
+</section>
+
+<section id="orderDetail" class="view">
+  <div class="top">
+    <div>
+      <button class="btn secondary" onclick="showView('orders', document.querySelector('.nav button:nth-child(2)'))">← Aufträge</button>
+      <h1 id="detailTitle" style="margin-top:12px">Auftrag</h1>
+      <div class="sub" id="detailSub"></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn secondary" onclick="createInvoiceFromOrder()">🧾 Rechnung</button>
+      
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="card"><div class="muted">Arbeitszeit</div><div class="stat" id="detailTime">00:00:00</div></div>
+    <div class="card"><div class="muted">Material</div><div class="stat" id="detailMaterial">0,00 €</div></div>
+    <div class="card"><div class="muted">Arbeitskosten</div><div class="stat" id="detailLabor">0,00 €</div></div>
+    <div class="card"><div class="muted">Offen</div><div class="stat warning" id="detailOpen">0,00 €</div></div>
+  </div>
+
+  <div class="section" style="display:grid;grid-template-columns:1.5fr 1fr;gap:15px">
+    <div class="card">
+      <h2>Arbeitspositionen</h2>
+      <div id="orderItems"></div>
+      <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:12px">
+        <div style="display:flex;justify-content:space-between"><span>Material</span><strong id="sumMaterial">0,00 €</strong></div>
+        <div style="display:flex;justify-content:space-between"><span>Arbeitskosten</span><strong id="sumLabor">0,00 €</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:18px;margin-top:8px"><span>Gesamt</span><strong id="sumTotal">0,00 €</strong></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h2>Arbeitszeit</h2>
+        <div class="timer" style="justify-content:space-between">
+          <span class="time" style="font-size:22px" id="detailTimer">00:00:00</span>
+          <button class="btn" id="detailTimerBtn" onclick="toggleDetailTimer()">▶ Start</button>
+        </div>
+        <div class="muted" style="margin-top:10px">Aktiver Benutzer: <span id="detailUser"></span></div>
+        <div class="work-summary-title">Arbeitszeit nach Mitarbeiter</div>
+        <div id="orderWorkSummary" class="work-summary"></div>
+      </div>
+      <div class="card section">
+        <h2>Arbeitskosten hinzufügen</h2>
+        <div class="form">
+          <div><label>Beschreibung</label><input id="laborDesc" placeholder="Arbeitsleistung"></div>
+          <div><label>Stundensatz (€)</label><input id="laborRate" type="number" step=".01" value="65"></div>
+          <div><label>Stunden</label><input id="laborHours" type="number" step=".25" value="1"></div>
+        </div>
+        <button class="btn" style="margin-top:12px;width:100%" onclick="addLabor()">Arbeitskosten buchen</button>
+      </div>
+      <div class="card section">
+        <h2>Teil aus Kundenlager buchen</h2>
+        <input id="detailPartSearch" class="search" placeholder="Teil suchen…" oninput="renderDetailPartSearch(this.value)" autocomplete="off">
+        <div id="detailPartResults" class="detail-part-results" style="margin-top:8px"></div>
+        <div id="detailPartSelected" class="detail-part-selected muted" style="margin-top:8px">Noch kein Teil ausgewählt.</div>
+        <input id="detailPartQty" type="number" min="1" value="1" style="margin-top:8px">
+        <button class="btn" style="margin-top:8px;width:100%" onclick="bookPart()">Teil buchen</button>
+      </div>
+
+      <div class="card section">
+        <h2>Notizen</h2>
+        <textarea id="orderNotes" rows="5" placeholder="Notizen zum Auftrag…" oninput="saveOrderNotes(this.value)"></textarea>
+        <div class="muted" style="margin-top:6px;font-size:12px">Wird automatisch gespeichert.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section card">
+    <h2>Auftragsbilder</h2>
+    <div class="muted" style="margin-bottom:10px">Bilder zu diesem Auftrag hochladen und dauerhaft lokal speichern.</div>
+    <input id="orderImageInput" type="file" accept="image/*" multiple onchange="uploadOrderImages(this.files)">
+    <div id="orderImages" class="image-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:14px"></div>
+  </div>
+</section>
+<section id="inventory" class="view">
+  <div class="top"><div><h1>Kundenlager</h1></div><button class="btn" onclick="openPartModal()">+ Teil hinzufügen</button></div>
+  <div class="toolbar"><div class="left"><input id="partSearch" class="search" placeholder="Teil im Kundenlager suchen…" oninput="renderParts(this.value)"></div></div>
+  <div class="inventory-filter-hint">Bereich filtern</div>
+  <div class="cards" id="parts"></div>
+</section>
+
+<section id="stockSales" class="view">
+  <div class="top"><div><h1>Lager/Verkauf</h1></div><button class="btn" onclick="openPartModal()">+ Teil hinzufügen</button></div>
+  <div class="toolbar"><div class="left"><input id="stockSalesSearch" class="search" placeholder="Teil in Lager/Verkauf suchen…" oninput="renderStockSales(this.value)"><button id="stockSalesTodoBtn" type="button" class="btn secondary" onclick="toggleStockSalesTodo()">Fällig</button></div></div>
+  <div class="inventory-filter-hint">Bereich filtern</div>
+  <div class="inventory-category-filter stock-sales-category-filter">
+    <label for="stockSalesAreaFilter">Bereich:</label>
+    <select id="stockSalesAreaFilter" onchange="renderStockSales(document.getElementById('stockSalesSearch')?.value||'')">
+      <option value="Alle">Alle</option>
+      <option value="Lager">Lager</option>
+      <option value="Verkauf">Verkauf</option>
+    </select>
+  </div>
+  <div class="cards" id="stockSalesParts"></div>
+</section>
+
+<section id="customers" class="view">
+  <div class="top"><div><h1>Kundenstamm</h1></div><button class="btn" onclick="openModal('customerModal')">+ Kunde hinzufügen</button></div>
+  <div class="toolbar"><div class="left"><input id="customerSearch" class="search" placeholder="Kunde suchen…" oninput="renderCustomers(this.value)"><button id="openCustomerFilterBtn" type="button" class="btn secondary" onclick="toggleOpenCustomerFilter()">Offene Vorgänge</button></div></div>
+  <div class="cards" id="customersList"></div>
+</section>
+
+<section id="invoices" class="view">
+  <div class="top"><div><h1>Rechnungen</h1></div></div>
+  <div class="card invoice-table-card">
+    <h2 style="margin:0 0 12px">Offene Rechnungen</h2>
+    <table class="table"><thead><tr><th>Rechnung</th><th>Kunde</th><th>Datum</th><th>Betrag</th><th>Status</th><th>Aktionen</th></tr></thead><tbody id="invoiceTable"></tbody></table>
+  </div>
+  <div class="card invoice-table-card paid-invoices-section" style="margin-top:18px">
+    <h2 style="margin:0 0 12px">Bezahlte Rechnungen</h2>
+    <table class="table"><thead><tr><th>Rechnung</th><th>Kunde</th><th>Datum</th><th>Betrag</th><th>Status</th><th>Aktionen</th></tr></thead><tbody id="paidInvoiceTable"></tbody></table>
+  </div>
+</section>
+
+
+<section id="expenseComparison" class="view">
+  <div class="top"><div><h1>Ausgabenvergleich</h1></div><button id="expenseComparisonResetBtn" class="btn danger" type="button" onclick="resetExpenseComparison()" style="display:none">Zurücksetzen</button></div>
+  <div class="grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="card"><div class="muted">Benjamin</div><div class="stat" id="compareBenjaminTotal">0,00 €</div></div>
+    <div class="card"><div class="muted">Differenz</div><div class="stat" id="compareDifference">0,00 €</div></div>
+    <div class="card"><div class="muted">Malik</div><div class="stat" id="compareMalikTotal">0,00 €</div></div>
+    <div class="card"><div class="muted">Hälfte der Differenz</div><div class="stat" id="compareHalfDifference">0,00 €</div></div>
+  </div>
+  <div class="card section expense-comparison-card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Teil / Einkauf</th><th>Menge</th><th>Wer</th><th>Betrag</th><th>Gesamt</th><th>Aktionen</th></tr></thead>
+        <tbody id="expenseComparisonTable"></tbody>
+      </table>
+    </div>
+    <div id="expenseComparisonEmpty" class="muted" style="display:none;margin-top:10px">Noch keine Einkäufe vorhanden.</div>
+  </div>
+</section>
+
+<section id="invoiceDetailView" class="view">
+  <div class="top no-print">
+    <div><h1 id="invoiceDetailTitle">Rechnung</h1></div>
+    <div class="invoice-actions">
+      <button class="btn secondary" onclick="showView('invoices',document.querySelector('.nav button:nth-child(5)'))">← Rechnungen</button>
+      <button class="btn" onclick="printCurrentInvoice()">🖨 PDF / Drucken</button>
+    </div>
+  </div>
+  <div id="invoicePrintView"></div>
+</section>
+
+<section id="audit" class="view">
+  <div class="top"><div><h1>Aktivitätsprotokoll</h1></div><button class="btn danger" onclick="resetDemoData()">Lokale Daten löschen</button></div>
+  <div class="card"><div id="auditList"></div></div>
+</section>
+</main></div>
+
+<div class="modal" id="orderModal"><div class="modalbox"><div class="modalhead"><h2>Neuer Auftrag</h2><button class="close" onclick="closeModal('orderModal')">×</button></div>
+<form onsubmit="addOrder(event)"><div class="form"><div class="full"><label>Kunde</label><button type="button" id="orderCustomerSearch" class="customer-search customer-trigger btn secondary" onclick="openCustomerPickerModal('orderCustomer')"><span class="placeholder">Kunden auswählen…</span><span>⌄</span></button><input type="hidden" id="orderCustomer"></div><div><label>Beschreibung</label><input id="orderDesc" required placeholder="z. B. Bremsen erneuern"></div><div class="full"><label>Notiz</label><textarea id="orderNote" rows="3" placeholder="Weitere Informationen…"></textarea></div></div><div class="actions"><button type="button" class="btn secondary" onclick="closeModal('orderModal')">Abbrechen</button><button class="btn">Auftrag anlegen</button></div></form></div></div>
+
+<div class="modal" id="partModal"><div class="modalbox"><div class="modalhead"><h2 id="partModalTitle">Teil hinzufügen</h2><button class="close" onclick="closeModal('partModal')">×</button></div>
+<form onsubmit="savePart(event)"><input type="hidden" id="partEditId"><input type="hidden" id="partTargetModule">
+  <div class="form">
+    <div><label>Bezeichnung</label><input id="partName" required placeholder="z. B. Ölfilter"></div>
+    <div><label>Teilenummer (optional)</label><input id="partNumber" placeholder="z. B. 06A115561B"></div>
+    <div><label>Verkaufspreis (€)</label><input id="partPrice" type="number" step=".01" min="0" required></div>
+    <div><label>Einkaufspreis (€)</label><input id="partCost" type="number" step=".01" min="0" required></div>
+    <div><label>Bestand</label><input id="partQty" type="number" min="0" value="1" required></div>
+    <div class="full" id="partCategoryWrap"><label>Bereich *</label>
+      <select id="partCategory">
+        <option value="" disabled>Bereich auswählen *</option>
+        <option value="VAG">VAG</option>
+        <option value="BMW Group">BMW Group</option>
+        <option value="Mercedes-Benz Group">Mercedes-Benz Group</option>
+        <option value="Stellantis">Stellantis</option>
+        <option value="Weitere">Weitere</option>
+        <option value="Allgemeines">Allgemeines</option>
+        <option value="Flüssigkeiten">Flüssigkeiten</option>
+      </select>
+    </div>
+    <div class="full" id="partAreaAssignmentWrap" style="display:none">
+      <label>Bereich *</label>
+      <select id="partAreaSelect" onchange="toggleSalesTodoFields()">
+        <option value="" disabled>Bereich auswählen *</option>
+        <option value="Lager">Lager</option>
+        <option value="Verkauf">Verkauf</option>
+      </select>
+    </div>
+    <div class="full sales-todo-fields" id="salesTodoFields" style="display:none">
+      <label class="checkbox-row"><input id="partNeedsPlacement" type="checkbox" onchange="toggleSalesTodoFields()"> Muss noch reingestellt werden</label>
+      <div><label>Reingestellt bis</label><input id="partPlacementDue" type="date"></div>
+      <div class="muted" style="font-size:12px">Bei „Muss noch reingestellt werden“ oder wenn „Reingestellt bis“ heute oder in der Vergangenheit liegt, erscheint das Teil als Fällig.</div>
+    </div>
+    <div class="full"><div id="partEditActions" class="part-edit-actions" style="display:none; margin-bottom:10px">
+        <button type="button" class="btn danger" onclick="deletePartFromEdit()">Löschen</button>
+      </div>
+      <label>Foto</label>
+      <div class="part-image-tools part-img-actions">
+        <label class="btn secondary" style="display:inline-block">📁 Foto wählen<input id="partImgFile" type="file" accept="image/*" style="display:none" onchange="loadPartImageFile(event)"></label>
+      </div>
+      <div class="image-preview-wrap"><img id="partPreview" class="camera-preview" alt="Vorschau des Teils"></div>
+      <input id="partImg" type="hidden">
+    </div>
+  </div>
+  <div class="actions"><button type="button" class="btn secondary" onclick="closeModal('partModal')">Abbrechen</button><button class="btn" id="partSaveBtn">Speichern</button></div>
+</form></div></div>
+
+<div class="modal" id="partImageViewer">
+  <div class="modalbox part-image-viewer-box">
+    <div class="modalhead">
+      <h2 id="partImageViewerTitle">Bild</h2>
+      <button class="close" onclick="closeModal('partImageViewer')">×</button>
+    </div>
+    <div class="part-image-viewer-content">
+      <img id="partImageViewerImg" alt="Teil Bild">
+    </div>
+    <div class="actions">
+      <a id="partImageDownload" class="btn secondary" href="#" download="Kundenlagerbild.png">Bild herunterladen</a><button type="button" class="btn danger" onclick="deleteViewedPartImage()">Bild löschen</button>
+      <button type="button" class="btn secondary" onclick="closeModal('partImageViewer')">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="bookPartModal"><div class="modalbox">
+  <div class="modalhead"><h2 id="bookPartTitle">Teil auf Auftrag buchen</h2><button class="close" onclick="closeModal('bookPartModal')">×</button></div>
+  <input type="hidden" id="bookPartId">
+  <div class="form">
+    <div class="full"><label>Kunde</label><button type="button" id="bookPartCustomerSearch" class="customer-search customer-trigger btn secondary" onclick="openCustomerPickerModal('bookPartCustomer')"><span class="placeholder">Kunden auswählen…</span><span>⌄</span></button><input type="hidden" id="bookPartCustomer"><div class="customer-picker" id="bookPartCustomerPicker" style="display:none"></div></div><div class="full"><label>Auftrag</label><div class="order-picker" id="bookPartOrderPicker"></div><select id="bookPartOrder" style="display:none"></select></div>
+    <div><label>Menge</label><input id="bookPartQty" type="number" min="1" value="1"></div>
+  </div>
+  <div class="actions">
+    <button type="button" class="btn secondary" onclick="closeModal('bookPartModal')">Abbrechen</button>
+    <button type="button" class="btn" onclick="confirmBookPart()">Teil buchen</button>
+  </div>
+</div></div>
+
+<div class="modal" id="customerPickerModal"><div class="modalbox"><div class="modalhead"><h2>Kunde auswählen</h2><button class="close" onclick="closeModal('customerPickerModal')">×</button></div><input id="customerPickerSearch" class="customer-picker-search" placeholder="Kundenname, Telefon oder E-Mail suchen…" oninput="renderCustomerPickerModal(this.value)"><div id="customerPickerList" class="customer-picker-list"></div><div class="actions"><button type="button" class="btn secondary" onclick="closeModal('customerPickerModal')">Abbrechen</button></div></div></div>
+<div class="modal" id="customerModal"><div class="modalbox"><div class="modalhead"><h2>Kunde hinzufügen</h2><button class="close" onclick="closeModal('customerModal')">×</button></div>
+<form onsubmit="addCustomer(event)"><div class="form"><div><label>Vorname</label><input id="custFirstName" required></div><div><label>Nachname</label><input id="custLastName" required></div><div><label>E-Mail</label><input id="custEmail" type="email"></div><div><label>Telefon</label><input id="custPhone"></div><div><label>Adresse</label><input id="custAddress"></div></div><div class="actions"><button type="button" class="btn secondary" onclick="closeModal('customerModal')">Abbrechen</button><button class="btn">Kunde speichern</button></div></form></div></div>
+
+
+<div class="modal" id="customerDetailModal"><div class="modalbox" style="width:min(760px,100%)"><div class="modalhead"><h2 id="customerDetailTitle">Kundendaten</h2><button class="close" onclick="closeModal('customerDetailModal')">×</button></div>
+  <div id="customerDetailContent"></div>
+</div></div>
+
+<div class="modal" id="vehicleImageViewer"><div class="modalbox vehicle-image-viewer-box"><div class="modalhead"><h2 id="vehicleImageViewerTitle">Fahrzeugpapier</h2><button class="close" onclick="closeModal('vehicleImageViewer')">×</button></div><div class="vehicle-image-viewer-content"><img id="vehicleImageViewerImg" src="" alt="Fahrzeugpapier"></div><div class="actions"><a id="vehicleImageDownload" class="btn secondary" href="#" download="Fahrzeugpapier.png">Bild herunterladen</a><button type="button" class="btn danger" onclick="deleteViewedVehicleImage()">Bild löschen</button><button type="button" class="btn secondary" onclick="closeModal('vehicleImageViewer')">Schließen</button></div></div></div>
+
+<div class="modal" id="quickStockModal"><div class="modalbox"><div class="modalhead"><h2 id="quickStockTitle">Bestand bearbeiten</h2><button class="close" onclick="closeModal('quickStockModal')">×</button></div>
+<form onsubmit="saveQuickStock(event)"><input type="hidden" id="quickStockId"><div class="form"><div><label>Teil</label><input id="quickStockName" disabled></div><div><label>Aktueller Bestand</label><input id="quickStockCurrent" disabled></div><div class="full"><label id="quickStockLabel">Neuer Bestand</label><input id="quickStockValue" type="number" step="1" required></div></div><div class="actions"><button type="button" class="btn secondary" onclick="closeModal('quickStockModal')">Abbrechen</button><button class="btn">Speichern</button></div></form></div></div>
+
+<div class="modal" id="todoModal"><div class="modalbox"><div class="modalhead"><h2 id="todoModalTitle">To-Do hinzufügen</h2><button class="close" onclick="closeModal('todoModal')">×</button></div>
+<form onsubmit="saveTodo(event)"><input type="hidden" id="todoEditId">
+  <div class="form">
+    <div class="full"><label>To-Do</label><input id="todoText" required maxlength="200" placeholder="z. B. Kundenfahrzeug prüfen"></div>
+    <div><label>Zuständig</label><select id="todoAssignee"><option value="Beide" selected>Beide</option><option value="Benjamin">Benjamin</option><option value="Malik">Malik</option></select></div>
+  </div>
+  <div class="actions"><button type="button" class="btn secondary" onclick="closeModal('todoModal')">Abbrechen</button><button class="btn">To-Do speichern</button></div>
+</form></div></div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+const STORAGE_KEY = "werkflow-static-v1";
+const SESSION_KEY = "werkflow-user-v1";
+let currentUser = null;
+let detailOrderId = null;
+
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      customers:state.customers, orders:state.orders, parts:state.parts,
+      invoices:state.invoices, purchases:state.purchases||[], expenseComparisonHidden:state.expenseComparisonHidden||[], todos:state.todos||[], todoOrder:state.todoOrder||[], auditLog
+    }));
+  }catch(err){ console.warn("Lokales Speichern nicht möglich:",err); }
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return;
+    const saved=JSON.parse(raw);
+    if(saved.customers)state.customers=saved.customers;
+    state.customers.forEach(c=>{if(!c.firstName||!c.lastName){const n=String(c.name||"").trim().split(/\s+/);if(n.length>1){c.lastName=n.shift();c.firstName=n.join(" ");}else{c.lastName=n[0]||"";c.firstName="";}}c.name=[c.lastName,c.firstName].filter(Boolean).join(" " );});
+    if(saved.orders)state.orders=saved.orders;
+    if(saved.parts)state.parts=saved.parts;
+    const validPartCategories=["VAG","BMW Group","Mercedes-Benz Group","Stellantis","Weitere","Allgemeines","Flüssigkeiten"];
+    state.parts.forEach(part=>{ if(!validPartCategories.includes(part.category)) part.category="Allgemeines"; if(!Array.isArray(part.areas)||!part.areas.some(x=>x==='Lager'||x==='Verkauf')) part.areas=['Lager']; if(typeof part.needsPlacement!=='boolean') part.needsPlacement=false; if(typeof part.placementDue!=='string') part.placementDue=''; });
+    if(saved.invoices)state.invoices=saved.invoices;
+    if(Array.isArray(saved.purchases))state.purchases=saved.purchases;
+    if(Array.isArray(saved.expenseComparisonHidden))state.expenseComparisonHidden=saved.expenseComparisonHidden;
+    if(Array.isArray(saved.todos))state.todos=saved.todos;
+    if(Array.isArray(saved.todoOrder))state.todoOrder=saved.todoOrder.map(String);
+    state.todoOrder=Array.isArray(state.todoOrder)?state.todoOrder:[];
+    state.todos=state.todos.filter(t=>t&&t.id!=null).map(t=>({id:t.id,text:String(t.text||"").trim(),assignee:["Beide","Benjamin","Malik"].includes(t.assignee)?t.assignee:"Beide",createdAt:t.createdAt||new Date().toISOString()})).filter(t=>t.text);
+    if(Array.isArray(saved.auditLog))auditLog=saved.auditLog;
+    state.orders.forEach(o=>{ o.id=Number(o.id)||0; o.status=normalizeStatus(o.status); normalizeOrder(o); });
+    // Alte zufällige Auftragsnummern einmalig in eine fortlaufende Reihe ab 0000 überführen.
+    if(state.orders.some(o=>Number(o.id)>=1000)){
+      const byOldId=[...state.orders].sort((a,b)=>Number(a.id)-Number(b.id));
+      byOldId.forEach((o,index)=>{o.id=index;});
+    }
+  }catch(err){ console.warn("Gespeicherte Daten konnten nicht geladen werden:",err); }
+}
+function showToast(msg){
+  const el=document.getElementById("toast"); if(!el)return;
+  el.textContent=msg; el.classList.add("show");
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer=setTimeout(()=>el.classList.remove("show"),2200);
+}
+function resetDemoData(){
+  if(!confirm("Alle lokal gespeicherten Daten löschen und mit einem leeren Bestand starten?"))return;
+  localStorage.removeItem(STORAGE_KEY); location.reload();
+}
+
+function orderObj(){
+  return state.orders.find(o=>o.id==detailOrderId);
+}
+function normalizeOrder(o){
+  if(!o.items) o.items=[];
+  if(!o.payments) o.payments=[];
+  if(!o.audit) o.audit=[];
+  if(typeof o.notes!=="string") o.notes="";
+  if(!Array.isArray(o.images)) o.images=[];
+  if(!Array.isArray(o.workLog)) o.workLog=[];
+  return o;
+}
+function orderAudit(o, text){
+  normalizeOrder(o);
+  o.audit.unshift({user:currentUser||"System",text,time:new Date().toLocaleString('de-DE')});
+  audit("hat bei Auftrag #"+o.id+" "+text);
+}
+function openOrder(id){
+  detailOrderId=id;
+  const o=normalizeOrder(state.orders.find(x=>x.id==id));
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.getElementById('orderDetail').classList.add('active');
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+  renderOrderDetail();
+}
+function renderOrderDetail(){
+  const o=orderObj(); if(!o) return;
+  detailTitle.textContent="Auftrag #"+formatOrderId(o.id);
+  detailSub.textContent=customerName(o.customer)+" · "+o.desc;
+  detailUser.textContent=currentUser||"—";
+  detailTime.textContent=fmtTime(o.seconds);
+  detailTimer.textContent=fmtTime(o.seconds);
+  detailTimerBtn.textContent=o.running?"■ Stop":"▶ Start";
+  const notesEl=document.getElementById("orderNotes"); if(notesEl) notesEl.value=o.notes||"";
+  const partSearch=document.getElementById("detailPartSearch"); if(partSearch) partSearch.value="";
+  const selectedBox=document.getElementById("detailPartSelected"); if(selectedBox) selectedBox.textContent="Noch kein Teil ausgewählt.";
+  const resultsBox=document.getElementById("detailPartResults"); if(resultsBox) resultsBox.innerHTML="";
+  let material=o.items.filter(i=>i.type==="part").reduce((a,i)=>a+i.price*i.qty,0);
+  let labor=o.items.filter(i=>i.type==="labor").reduce((a,i)=>a+i.price,0);
+  let total=material+labor;
+  let paid=o.payments.reduce((a,p)=>a+p.amount,0);
+  detailMaterial.textContent=money(material); detailLabor.textContent=money(labor);
+  detailOpen.textContent=money(Math.max(0,total-paid));
+  sumMaterial.textContent=money(material); sumLabor.textContent=money(labor); sumTotal.textContent=money(total);
+  const workRows=(o.workLog||[]).slice().reverse();
+  const workTotals={};
+  workRows.forEach(w=>{workTotals[w.user]=(workTotals[w.user]||0)+(Number(w.seconds)||0);});
+  const active=o._workSession;
+  if(active) workTotals[active.user]=(workTotals[active.user]||0)+(Number(active.seconds)||0);
+  let workBox=document.getElementById("orderWorkSummary");
+  if(workBox){
+    const names=Object.keys(workTotals);
+    const totalWorkSeconds=names.reduce((sum,u)=>sum+(Number(workTotals[u])||0),0);
+    workBox.innerHTML=names.length
+      ? names.map(u=>{
+          const seconds=Number(workTotals[u])||0;
+          const share=totalWorkSeconds>0 ? (seconds/totalWorkSeconds*100) : 0;
+          return `<div class="work-person"><strong>${esc(u)}</strong><span class="work-share">${share.toFixed(0)} %</span><span>${fmtTime(seconds)}</span></div>`;
+        }).join("")
+      : '<div class="muted">Noch keine Timer-Arbeitszeit dokumentiert.</div>';
+  }
+  const laborItems=o.items.map((item,idx)=>({item,idx})).filter(x=>x.item.type==="labor");
+  const partItems=o.items.map((item,idx)=>({item,idx})).filter(x=>x.item.type==="part");
+  const positionRow=({item,idx})=>`
+    <div class="order-position-row">
+      <div><strong>${esc(item.name)}</strong><div class="muted">${item.type==="part"?`Material · ${item.qty} × ${money(item.price)}`:`Arbeitsleistung · ${item.hours} h × ${money(item.rate)}/h`}</div></div>
+      <div class="order-position-actions"><strong>${money(item.price*item.qty)}</strong><button class="btn danger" style="padding:4px 7px" onclick="removeItem(${idx})">×</button></div>
+    </div>`;
+  const group=(title,items,empty)=>`<div class="order-position-group"><div class="order-position-group-title"><strong>${title}</strong><span class="muted">${items.length}</span></div>${items.length?items.map(positionRow).join(''):`<div class="muted order-position-empty">${empty}</div>`}</div>`;
+  orderItems.innerHTML=group('Arbeitszeit / Arbeitsleistungen',laborItems,'Noch keine Arbeitsleistungen erfasst.')+group('Teile / Material',partItems,'Noch keine Teile gebucht.');
+  renderOrderImages(o);
+}
+function renderDetailPartSearch(query="") {
+  const box=document.getElementById("detailPartResults"); if(!box)return;
+  const q=String(query||"").trim().toLowerCase();
+  if(!q){box.innerHTML='<div class="muted" style="font-size:12px">Bitte zuerst nach einem Teil suchen.</div>';return;}
+  const matches=state.parts.filter(p=>`${p.name||""} ${p.partNumber||""} ${p.category||""}`.toLowerCase().includes(q)).slice(0,20);
+  box.innerHTML=matches.length ? matches.map(p=>`<button type="button" class="detail-part-result" onclick="selectDetailPart(${JSON.stringify(p.id)})"><strong>${esc(p.name||"Teil")}</strong><span>${p.partNumber?esc(p.partNumber)+" · ":""}${money(p.price)} · Bestand ${Number(p.qty)||0}</span></button>`).join("") : '<div class="muted" style="font-size:12px">Kein passendes Teil gefunden.</div>';
+}
+function selectDetailPart(id){
+  const p=state.parts.find(x=>String(x.id)===String(id)); if(!p)return;
+  const hidden=document.getElementById("detailPartSelected");
+  if(hidden){hidden.dataset.id=String(p.id);hidden.classList.remove("muted");hidden.innerHTML=`<strong>${esc(p.name)}</strong> · ${money(p.price)} · Bestand ${Number(p.qty)||0}`;}
+  const search=document.getElementById("detailPartSearch"); if(search)search.value=p.name||"";
+  const box=document.getElementById("detailPartResults"); if(box)box.innerHTML="";
+}
+function saveOrderNotes(value){
+  const o=normalizeOrder(orderObj()); if(!o)return;
+  o.notes=String(value??"");
+  saveState();
+}
+
+function toggleDetailTimer(){
+  const o=normalizeOrder(orderObj());
+  const user=currentUser||"Unbekannt";
+  o.running=!o.running;
+  if(o.running){
+    o._workSession={user,start:Date.now(),seconds:0};
+    timerHandles[o.id]=setInterval(()=>{
+      o.seconds++;
+      if(o._workSession)o._workSession.seconds++;
+      renderOrderDetail();renderTimer(o.id)
+    },1000);
+    orderAudit(o,"hat die Arbeitszeit gestartet");
+  } else {
+    clearInterval(timerHandles[o.id]); delete timerHandles[o.id];
+    if(o._workSession){
+      o.workLog.push({user:o._workSession.user,start:new Date(o._workSession.start).toISOString(),end:new Date().toISOString(),seconds:Number(o._workSession.seconds)||0});
+      delete o._workSession;
+    }
+    orderAudit(o,"hat die Arbeitszeit gestoppt");
+  }
+  saveState(); renderOrderDetail(); render();
+}
+function openBookPartModal(partId){
+  const p=state.parts.find(x=>String(x.id)===String(partId));
+  if(!p){showToast("Teil wurde nicht gefunden.");return;}
+  const select=document.getElementById("bookPartOrder");
+  const qty=document.getElementById("bookPartQty");
+  const hidden=document.getElementById("bookPartId");
+  if(!select||!qty||!hidden)return;
+  hidden.value=String(p.id);
+  qty.value=1;
+  const available=state.orders.filter(o=>normalizeStatus(o.status)!=="Fertig");
+  select.innerHTML=available.length
+    ? available.map(o=>`<option value="${o.id}">#${formatOrderId(o.id)} · ${esc(customerName(o.customer))} · ${esc(o.desc||"Auftrag")}</option>`).join("")
+    : '<option value="">Keine offenen Aufträge vorhanden</option>';
+  document.getElementById("bookPartTitle").textContent=`„${p.name}" auf Auftrag buchen`;
+  openModal("bookPartModal");
+}
+function filterBookPartOrders(){renderBookPartOrders()}
+function renderBookPartOrders(){
+  const customerId=String(document.getElementById("bookPartCustomer")?.value||"");
+  const box=document.getElementById("bookPartOrderPicker"), select=document.getElementById("bookPartOrder"); if(!box||!select)return;
+  const available=state.orders.filter(o=>!isOrderCompleted(o)&&(!customerId||String(o.customer)===customerId));
+  select.innerHTML=available.map(o=>`<option value="${o.id}">${esc(customerName(o.customer))} · #${formatOrderId(o.id)} · ${esc(o.desc||"Auftrag")}</option>`).join("");
+  box.innerHTML=available.length?available.map((o,i)=>`<button type="button" class="order-choice ${i===0?'selected':''}" onclick="selectBookPartOrder(${o.id})"><strong>${esc(customerName(o.customer))}</strong> · #${formatOrderId(o.id)}<div class="muted">${esc(o.desc||"Auftrag")}</div></button>`).join(""):'<div class="muted">Für diesen Kunden gibt es keine offenen Aufträge.</div>';
+  if(available.length)select.value=String(available[0].id);
+}
+function selectBookPartOrder(id){const select=document.getElementById("bookPartOrder");if(select)select.value=String(id);document.querySelectorAll('#bookPartOrderPicker .order-choice').forEach(b=>b.classList.remove('selected'));const btn=[...document.querySelectorAll('#bookPartOrderPicker .order-choice')].find(b=>b.getAttribute('onclick')===`selectBookPartOrder(${id})`);if(btn)btn.classList.add('selected')}
+function confirmBookPart(){
+  const partId=document.getElementById("bookPartId")?.value;
+  const orderId=document.getElementById("bookPartOrder")?.value;
+  const qty=Number(document.getElementById("bookPartQty")?.value)||0;
+  const p=state.parts.find(x=>String(x.id)===String(partId));
+  const o=normalizeOrder(state.orders.find(x=>String(x.id)===String(orderId)));
+  if(!p||!o||qty<1)return;
+  if(p.qty<qty){alert("Nicht genügend Bestand.");return;}
+  p.qty-=qty;
+  o.items.push({type:"part",name:p.name,qty,price:p.price});
+  o.total=o.items.reduce((a,i)=>a+(Number(i.price)||0)*(Number(i.qty)||1),0);
+  orderAudit(o,`das Kundenlagerteil „${p.name}“ (${qty} Stück) gebucht`);
+  saveState();
+  closeModal("bookPartModal");
+  render();
+  if(detailOrderId==o.id) renderOrderDetail();
+  showToast(`Teil auf Auftrag #${formatOrderId(o.id)} gebucht`);
+}
+function bookPart(){
+  const o=normalizeOrder(orderObj()), selected=document.getElementById("detailPartSelected"), p=state.parts.find(x=>String(x.id)===String(selected?.dataset.id||"")), qty=+document.getElementById("detailPartQty")?.value;
+  if(!p){alert("Bitte zuerst ein Teil über die Suche auswählen.");return;}
+  if(qty<1) return;
+  if(p.qty<qty){alert("Nicht genügend Bestand.");return;}
+  p.qty-=qty;
+  o.items.push({type:"part",name:p.name,qty,price:p.price});
+  o.total=o.items.reduce((a,i)=>a+i.price*i.qty,0);
+  orderAudit(o,`das Kundenlagerteil „${p.name}“ (${qty} Stück) gebucht`);
+  saveState(); renderOrderDetail(); render();
+}
+function addLabor(){
+  const o=normalizeOrder(orderObj()), desc=laborDesc.value||"Arbeitsleistung", rate=+laborRate.value||0, hours=+laborHours.value||0;
+  if(hours<=0) return;
+  o.items.push({type:"labor",name:desc,qty:1,price:rate*hours,hours,rate,user:currentUser||"Unbekannt"});
+  o.total=o.items.reduce((a,i)=>a+i.price*i.qty,0);
+  orderAudit(o,`Arbeitskosten „${desc}“ (${hours} h) gebucht`);
+  laborDesc.value=""; saveState(); renderOrderDetail(); render();
+}
+function removeItem(idx){
+  const o=normalizeOrder(orderObj()), i=o.items[idx];
+  if(i?.type==="part"){let p=state.parts.find(x=>x.name===i.name);if(p)p.qty+=i.qty;}
+  o.items.splice(idx,1);
+  o.total=o.items.reduce((a,i)=>a+i.price*i.qty,0);
+  orderAudit(o,`${i.type==="part"?`das Teil „${i.name}“ (${i.qty} Stück)`: `die Arbeitsposition „${i.name}“ (${i.hours} h)`} entfernt`);
+  saveState(); renderOrderDetail(); render();
+}
+function uploadOrderImages(files){
+  const o=normalizeOrder(orderObj());
+  if(!o||!files||!files.length)return;
+  const list=Array.from(files);
+  let remaining=list.length;
+  list.forEach(file=>{
+    if(!file.type||!file.type.startsWith('image/')){ if(--remaining===0){saveState();renderOrderDetail();} return; }
+    const reader=new FileReader();
+    reader.onload=e=>{
+      o.images.push({id:Date.now()+Math.random(),name:file.name,data:e.target.result});
+      if(--remaining===0){ orderAudit(o,`${list.length} Bild(er) hochgeladen`); saveState(); renderOrderDetail(); showToast('Auftragsbilder gespeichert.'); }
+    };
+    reader.onerror=()=>{ if(--remaining===0){saveState();renderOrderDetail();} };
+    reader.readAsDataURL(file);
+  });
+}
+function deleteOrderImage(imageId){
+  const o=normalizeOrder(orderObj()); if(!o)return;
+  o.images=o.images.filter(img=>String(img.id)!==String(imageId));
+  orderAudit(o,'ein Auftragsbild gelöscht'); saveState(); renderOrderDetail();
+}
+function renderOrderImages(o){
+  const box=document.getElementById('orderImages'); if(!box)return;
+  box.innerHTML=o.images.length?o.images.map(img=>`<div style="border:1px solid var(--line);border-radius:10px;overflow:hidden;padding:6px"><img src="${img.data}" alt="${img.name||'Auftragsbild'}" style="width:100%;height:110px;object-fit:cover;border-radius:7px"><a class="btn secondary image-download-btn" href="${img.data}" download="${esc(img.name||'Auftragsbild')}">Bild herunterladen</a><button class="btn danger" style="width:100%;margin-top:6px;padding:5px 8px;font-size:12px" onclick="deleteOrderImage('${img.id}')">Bild löschen</button></div>`).join(''):'<div class="muted">Noch keine Bilder zu diesem Auftrag.</div>';
+}
+
+function recordPayment(){
+  const o=normalizeOrder(orderObj());
+  const material=o.items.filter(i=>i.type==="part").reduce((a,i)=>a+i.price*i.qty,0);
+  const labor=o.items.filter(i=>i.type==="labor").reduce((a,i)=>a+i.price,0);
+  const total=material+labor, paid=o.payments.reduce((a,p)=>a+p.amount,0), open=Math.max(0,total-paid);
+  const val=prompt("Zahlungsbetrag in € (offen: "+open.toFixed(2)+")");
+  const amount=parseFloat(val);
+  if(!amount||amount<=0) return;
+  o.payments.push({amount,method:"Zahlung",user:currentUser,time:new Date().toLocaleString('de-DE')});
+  orderAudit(o,`eine Zahlung über ${money(amount)} erfasst`);
+  saveState(); renderOrderDetail(); render();
+}
+function createInvoiceFromOrder(){
+  const o=normalizeOrder(orderObj());
+  const total=o.items.reduce((a,i)=>a+i.price*i.qty,0);
+  const paid=o.payments.reduce((a,p)=>a+p.amount,0);
+  const invoice={id:"RE-"+new Date().getFullYear()+"-"+String(Math.floor(Math.random()*9000)+1000),customer:o.customer,date:new Date().toLocaleDateString('de-DE'),amount:Math.max(0,total-paid),status:"Offen",order:o.id,items:o.items.map(i=>({name:i.name,type:i.type,qty:i.qty||1,price:i.price||0}))};
+  state.invoices.unshift(invoice);
+  const c=state.customers.find(x=>x.id==o.customer); if(c)c.open+=invoice.amount;
+  orderAudit(o,`eine Rechnung ${invoice.id} über ${money(invoice.amount)} erstellt`);
+  alert("Rechnung "+invoice.id+" wurde erstellt.");
+  saveState(); renderOrderDetail();render();
+}
+
+let auditLog = [];
+const USER_PASSWORDS = { b13: "Benjamin", m14: "Malik" };
+
+function audit(action){
+  auditLog.unshift({user:currentUser || "System", action, time:new Date().toLocaleString('de-DE')});
+  saveState();
+  renderAudit();
+}
+function checkPassword(){
+  const user = USER_PASSWORDS[passwordInput.value];
+  if(user){ loginAs(user); passwordInput.value=''; loginError.textContent=''; }
+  else { loginError.textContent='Passwort ist falsch.'; }
+}
+function loginAs(user){
+  currentUser=user;
+  localStorage.setItem(SESSION_KEY,user);
+  loginScreen.style.display='none';
+  audit("hat sich angemeldet");
+  render();
+}
+function renderAudit(){
+  if(!document.getElementById('auditList')) return;
+  auditList.innerHTML = auditLog.length ? auditLog.map(x=>`<div class="audit-entry"><strong>${x.user}</strong> – ${x.action}<div class="muted">${x.time}</div></div>`).join('') : '<div class="muted">Noch keine Aktionen protokolliert.</div>';
+}
+const state={
+customers:[],
+orders:[],
+parts:[],
+purchases:[],
+invoices:[],
+expenseComparisonHidden:[],
+todos:[]
+};
+let timerHandles={};
+let openCustomerFilter=false;
+  let stockSalesTodoFilter=false;
+
+function money(n){return new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(n)}
+function customerName(id){return state.customers.find(c=>c.id==id)?.name||"—"}
+function fmtTime(s){let h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;return String(h).padStart(2,'0')+":"+String(m).padStart(2,'0')+":"+String(sec).padStart(2,'0')}
+function resetSectionFilters(id){
+  if(id==='orders'){
+    const filter=document.getElementById('orderFilter');
+    const search=document.getElementById('orderSearch');
+    if(filter)filter.value='not-finished';
+    if(search)search.value='';
+  }else if(id==='inventory'){
+    const search=document.getElementById('partSearch');
+    const category=document.getElementById('inventoryCategoryFilter');
+    if(search)search.value='';
+    if(category)category.value='Alle';
+  }else if(id==='stockSales'){
+    const search=document.getElementById('stockSalesSearch');
+    if(search)search.value='';
+    const area=document.getElementById('stockSalesAreaFilter');
+    if(area)area.value='Alle';
+    stockSalesTodoFilter=false;
+    const todoBtn=document.getElementById('stockSalesTodoBtn');
+    if(todoBtn){
+      todoBtn.textContent='Fällig';
+      todoBtn.classList.remove('active');
+      todoBtn.setAttribute('aria-pressed','false');
+      todoBtn.title='Nur fällige Teile anzeigen';
+    }
+  }else if(id==='todos'){
+    const filter=document.getElementById('todoAssigneeFilter');
+    if(filter)filter.value='Beide';
+  }else if(id==='customers'){
+    const search=document.getElementById('customerSearch');
+    if(search)search.value='';
+    openCustomerFilter=false;
+    const openBtn=document.getElementById('openCustomerFilterBtn');
+    if(openBtn){openBtn.textContent='Offene Vorgänge';openBtn.classList.remove('active');}
+  }
+}
+function renderInvoices(){
+  const tbody=document.getElementById('invoiceTable');
+  const paidBody=document.getElementById('paidInvoiceTable');
+  if(!tbody || !paidBody)return;
+
+  const active=state.invoices.filter(i=>["Offen","Geschrieben","Gestellt"].includes(String(i.status||"Offen")));
+  const paid=state.invoices.filter(i=>i.status==="Bezahlt");
+
+  const row=i=>{
+    const status=String(i.status||"Offen");
+    const statusClass=status==="Bezahlt"?"invoice-status-paid":status==="Offen"?"invoice-status-open":"invoice-status-orange";
+    return `<tr>
+      <td data-label="Rechnung"><button class="btn secondary" style="padding:5px 9px" onclick="openInvoice('${i.id}')">${i.id}</button></td>
+      <td data-label="Kunde">${customerName(i.customer)}</td>
+      <td data-label="Datum">${i.date}</td>
+      <td data-label="Betrag">${money(i.amount)}</td>
+      <td data-label="Status"><select class="invoice-status-select ${statusClass}" onchange="setInvoiceStatus('${i.id}',this.value)" style="min-width:130px">
+        <option ${status==="Offen"?"selected":""}>Offen</option>
+        <option ${status==="Geschrieben"?"selected":""}>Geschrieben</option>
+        <option ${status==="Gestellt"?"selected":""}>Gestellt</option>
+        <option ${status==="Bezahlt"?"selected":""}>Bezahlt</option>
+      </select></td>
+      <td data-label="Aktionen"><button class="btn danger" style="padding:5px 8px" onclick="deleteInvoice('${i.id}')">Löschen</button></td>
+    </tr>`;
+  };
+
+  tbody.innerHTML=active.map(row).join('') || '<tr><td colspan="6" class="muted">Keine offenen Rechnungen vorhanden.</td></tr>';
+  paidBody.innerHTML=paid.map(row).join('') || '<tr><td colspan="6" class="muted">Noch keine bezahlten Rechnungen vorhanden.</td></tr>';
+}
+function renderSectionList(id){
+  if(id==='orders') renderOrders('');
+  else if(id==='todos') renderTodos();
+  else if(id==='inventory') renderParts('');
+  else if(id==='stockSales') renderStockSales('');
+  else if(id==='customers') renderCustomers('');
+  else if(id==='invoices') renderInvoices();
+  }
+
+function showView(id,btn,direction){
+  const order=['dashboard','orders','todos','orderDetail','inventory','stockSales','customers','invoices','expenseComparison','invoiceDetailView','audit'];
+  const active=document.querySelector('.view.active');
+  if(!direction && active){
+    const ai=order.indexOf(active.id), ni=order.indexOf(id);
+    if(ai>=0&&ni>=0) direction=ni>=ai?'left':'right';
+  }
+  const main=document.querySelector('.main');
+  if(main){
+    main.classList.remove('view-transition-left','view-transition-right');
+    void main.offsetWidth;
+    main.classList.add(direction==='right'?'view-transition-right':'view-transition-left');
+  }
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  const target=document.getElementById(id);
+  if(!target)return;
+  target.classList.add('active');
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+
+  // Bereich immer in einem definierten Ausgangszustand öffnen.
+  resetSectionFilters(id);
+  if(id==='orders') renderOrders('');
+  else if(id==='todos') renderTodos();
+  else if(id==='inventory') renderParts('');
+  else if(id==='stockSales') renderStockSales('');
+  else if(id==='customers') renderCustomers('');
+  else if(id==='invoices') renderInvoices();
+    else if(id==='expenseComparison') renderExpenseComparison();
+  render();
+  // Nach dem allgemeinen Render erneut ausschließlich den geöffneten Bereich aufbauen.
+  if(id==='orders') renderOrders('');
+  else if(id==='todos') renderTodos();
+  else if(id==='inventory') renderParts('');
+  else if(id==='stockSales') renderStockSales('');
+  else if(id==='customers') renderCustomers('');
+  else if(id==='invoices') renderInvoices();
+  else if(id==='expenseComparison') renderExpenseComparison();
+}
+function openModal(id){document.getElementById(id).classList.add('open'); if(id==='orderModal'){setCustomerTrigger('orderCustomer');} if(id==='bookPartModal'){setCustomerTrigger('bookPartCustomer');renderBookPartOrders();}}
+function closeModal(id){ document.getElementById(id).classList.remove('open') }
+function customerInitials(c){return String(c?.name||"?").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"?"}
+let activeCustomerPickerTarget='';
+function setCustomerTrigger(hiddenId){const hidden=document.getElementById(hiddenId), trigger=document.getElementById(hiddenId==='orderCustomer'?'orderCustomerSearch':'bookPartCustomerSearch'); if(!hidden||!trigger)return; const c=getCustomer(hidden.value); trigger.innerHTML=c?`<span class="chosen">${esc(c.name)}</span><span>⌄</span>`:`<span class="placeholder">Kunden auswählen…</span><span>⌄</span>`;}
+function openCustomerPickerModal(hiddenId){activeCustomerPickerTarget=hiddenId;const modal=document.getElementById('customerPickerModal');if(modal)modal.classList.toggle('book-part-picker',hiddenId==='bookPartCustomer');const q=document.getElementById('customerPickerSearch');if(q)q.value='';if(modal)modal.classList.add('open');renderCustomerPickerModal('');}
+function renderCustomerPickerModal(filter=''){const box=document.getElementById('customerPickerList');if(!box)return;const hidden=document.getElementById(activeCustomerPickerTarget);const selected=String(hidden?.value||'');const q=String(filter||'').trim().toLowerCase();const list=state.customers.filter(c=>!q||[c.name,c.phone,c.email,c.address].join(' ').toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name,'de',{sensitivity:'base'}));box.innerHTML=list.map(c=>`<button type="button" class="customer-picker-card ${String(c.id)===selected?'selected':''}" onclick="chooseCustomerFromModal(${JSON.stringify(c.id)})"><span class="customer-picker-avatar">${esc(customerInitials(c))}</span><span><strong>${esc(c.name)}</strong><small>${esc(c.phone||'Keine Telefonnummer')} · ${esc(c.email||'Keine E-Mail')}</small></span><span class="customer-picker-check">${String(c.id)===selected?'✓':''}</span></button>`).join('')||'<div class="muted" style="padding:16px">Keine passenden Kunden gefunden.</div>';}
+function chooseCustomerFromModal(id){const hidden=document.getElementById(activeCustomerPickerTarget);if(!hidden)return;hidden.value=String(id);setCustomerTrigger(activeCustomerPickerTarget);closeModal('customerPickerModal');if(activeCustomerPickerTarget==='bookPartCustomer')renderBookPartOrders();}
+function renderCustomerPicker(containerId, hiddenId, selectedId=null, onSelect="", filter=""){
+  const box=document.getElementById(containerId), hidden=document.getElementById(hiddenId); if(!box||!hidden)return;
+  const selected=selectedId!=null?String(selectedId):String(hidden.value||"");
+  const q=String(filter||"").trim().toLowerCase();
+  const list=state.customers.filter(c=>!q||[c.name,c.phone,c.email,c.address].join(" ").toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name,'de',{sensitivity:'base'}));
+  box.innerHTML=list.map(c=>`<button type="button" class="customer-choice ${String(c.id)===selected?'selected':''}" onclick="selectCustomerFor('${containerId}','${hiddenId}',${JSON.stringify(c.id)}${onSelect?`,${onSelect}`:''})"><span class="avatar">${esc(customerInitials(c))}</span><span class="customer-choice-text"><strong>${esc(c.name)}</strong><small>${esc(c.phone||'Keine Telefonnummer')} · ${esc(c.email||'Keine E-Mail')}</small></span><span class="customer-check">${String(c.id)===selected?'✓':''}</span></button>`).join('')||'<div class="muted" style="padding:12px">Keine passenden Kunden gefunden.</div>';
+}
+function selectCustomerFor(containerId,hiddenId,id,callback){const hidden=document.getElementById(hiddenId);if(!hidden)return;hidden.value=String(id);const searchId=hiddenId==='orderCustomer'?'orderCustomerSearch':hiddenId==='bookPartCustomer'?'bookPartCustomerSearch':null;renderCustomerPicker(containerId,hiddenId,id,"",searchId?document.getElementById(searchId)?.value||'':'');if(typeof window[callback]==='function')window[callback](id)}
+function fillCustomerSelect(filter=''){renderCustomerPicker('orderCustomerPicker','orderCustomer',null,"",filter);}
+function fillBookPartCustomerSelect(filter=''){renderCustomerPicker('bookPartCustomerPicker','bookPartCustomer',null,"renderBookPartOrders",filter);renderBookPartOrders();}
+function deleteCustomer(id){
+  const c=state.customers.find(x=>x.id==id);
+  if(!c)return;
+  const linkedOrders=state.orders.filter(o=>o.customer==id).length;
+  const linkedInvoices=state.invoices.filter(i=>i.customer==id).length;
+  const msg=linkedOrders||linkedInvoices
+    ? `Kunde „${c.name}" löschen?\n\n${linkedOrders} Auftrag/Aufträge und ${linkedInvoices} Rechnung/Rechnungen bleiben erhalten, werden aber künftig ohne diesen Kunden angezeigt.`
+    : `Kunde „${c.name}" wirklich löschen?`;
+  if(!confirm(msg))return;
+  state.customers=state.customers.filter(x=>x.id!=id);
+  audit('hat den Kunden „'+c.name+'“ gelöscht');
+  saveState();
+  render();
+}
+function deleteOrder(id){
+  const o=state.orders.find(x=>x.id==id);
+  if(!o)return;
+  if(!confirm(`Auftrag #${o.id} wirklich löschen? Gebuchte Kundenlagerteile werden wieder in den Bestand zurückgebucht.`))return;
+  normalizeOrder(o);
+  o.items.filter(i=>i.type==="part").forEach(i=>{const p=state.parts.find(x=>x.name===i.name); if(p)p.qty+=Number(i.qty)||0;});
+  if(o.running&&timerHandles[o.id]){clearInterval(timerHandles[o.id]);delete timerHandles[o.id];}
+  state.orders=state.orders.filter(x=>x.id!=id);
+  audit(`hat den Auftrag #${o.id} gelöscht`);
+  saveState();
+  if(detailOrderId==id){detailOrderId=null;showView('orders',document.querySelector('.nav button:nth-child(2)'));}else render();
+}
+function deleteInvoice(id){
+  const inv=state.invoices.find(x=>x.id===id); if(!inv)return;
+  if(!confirm(`Rechnung ${inv.id} wirklich löschen?`))return;
+  const c=state.customers.find(x=>x.id==inv.customer);
+  if(c && inv.status!=="Bezahlt") c.open=Math.max(0,(Number(c.open)||0)-(Number(inv.amount)||0));
+  // Bezahlte Rechnungen bleiben als Zahlung im Einkommensarchiv erhalten.
+  state.invoices=state.invoices.filter(x=>x.id!==id);
+  audit(`hat die Rechnung ${inv.id} gelöscht`); saveState(); render();
+}
+function setInvoiceStatus(id,status){
+  const inv=state.invoices.find(x=>x.id===id); if(!inv)return;
+  const allowed=["Offen","Geschrieben","Gestellt","Bezahlt"];
+  if(!allowed.includes(status))return;
+  const old=inv.status;
+  if(old===status)return;
+  const c=state.customers.find(x=>x.id==inv.customer);
+  if(c){
+    if(old!=="Bezahlt" && status==="Bezahlt") c.open=Math.max(0,(Number(c.open)||0)-(Number(inv.amount)||0));
+    if(old==="Bezahlt" && status!=="Bezahlt") c.open=(Number(c.open)||0)+(Number(inv.amount)||0);
+  }
+  inv.status=status;
+  audit(`hat den Status der Rechnung ${inv.id} von „${old}“ auf „${status}“ geändert`);
+  saveState(); render();
+}
+function openQuickStock(id,mode="set"){
+  const p=state.parts.find(x=>String(x.id)===String(id)); if(!p)return;
+  partEl("quickStockId").value=p.id; partEl("quickStockName").value=p.name; partEl("quickStockCurrent").value=p.qty;
+  partEl("quickStockModal").dataset.mode=mode;
+  partEl("quickStockTitle").textContent=mode==="add"?"Bestand hinzufügen":"Bestand ändern";
+  partEl("quickStockLabel").textContent=mode==="add"?"Menge hinzufügen":"Neuer Bestand";
+  partEl("quickStockValue").value=mode==="add"?1:p.qty; openModal("quickStockModal");
+}
+function saveQuickStock(e){
+  e.preventDefault(); const p=state.parts.find(x=>String(x.id)===String(partEl("quickStockId").value)); if(!p)return false;
+  const value=Number(partEl("quickStockValue").value); if(!Number.isFinite(value)||value<0){alert("Bitte eine gültige Menge eingeben.");return false;}
+  const mode=partEl("quickStockModal").dataset.mode;
+  if(mode==="add"){
+    p.qty=(Number(p.qty)||0)+value;
+    if(!Array.isArray(state.purchases))state.purchases=[];
+    const purchaseId=Date.now();
+    const purchase={id:purchaseId,partId:p.id,partName:p.name,qty:value,unitCost:Number(p.cost)||0,amount:value*(Number(p.cost)||0),time:new Date().toISOString(),user:currentUser||"System"};
+    state.purchases.push(purchase);
+  }else{
+    p.qty=value;
+  }
+  audit(`hat den Bestand von „${p.name}“ auf ${p.qty} geändert`); saveState(); closeModal("quickStockModal"); render(); showToast("Bestand gespeichert"); return false;
+}
+function deletePart(id){ editedPartId=null;
+  const p=state.parts.find(x=>x.id==id);
+  if(!p)return;
+  if(!confirm(`Teil „${p.name}" wirklich löschen?\n\nBereits auf Aufträgen gebuchte Positionen bleiben erhalten.`))return;
+  state.parts=state.parts.filter(x=>x.id!=id);
+  audit('hat das Teil „'+p.name+'“ gelöscht');
+  saveState();
+  render();
+}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+function getCustomer(id){return state.customers.find(c=>String(c.id)===String(id));}
+function openCustomerDetail(id){
+  const c=getCustomer(id); if(!c)return;
+  if(!Array.isArray(c.vehicles))c.vehicles=[];
+  if(!Array.isArray(c.images))c.images=[];
+  if(typeof c.note!=="string")c.note="";
+  customerDetailTitle.textContent=c.name;
+  customerDetailContent.innerHTML=`
+    <div class="customer-detail-block">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><strong>${esc(c.name)}</strong><button type="button" class="btn secondary" style="padding:6px 9px;font-size:12px" onclick="enableCustomerEdit(${JSON.stringify(c.id)})">Bearbeiten</button></div>
+      <div id="customerInfoView" class="muted" style="margin-top:6px">E-Mail: ${esc(c.email||'—')}<br>Telefon: ${esc(c.phone||'—')}<br>Adresse: ${esc(c.address||'—')}<br>Offener Betrag: ${money(Number(c.open)||0)}</div>
+      <form id="customerEditForm" style="display:none;margin-top:10px" onsubmit="saveCustomerDetails(event,${JSON.stringify(c.id)})">
+        <div class="vehicle-grid"><div><label>Name</label><input name="name" required value="${esc(c.name)}"></div><div><label>E-Mail</label><input name="email" type="email" value="${esc(c.email||'')}"></div><div><label>Telefon</label><input name="phone" value="${esc(c.phone||'')}"></div><div><label>Adresse</label><input name="address" value="${esc(c.address||'')}"></div></div>
+        <div class="actions"><button type="button" class="btn secondary" onclick="openCustomerDetail(${JSON.stringify(c.id)})">Abbrechen</button><button class="btn">Änderungen speichern</button></div>
+      </form>
+    </div>
+    ${customerOpenSummary(c)}
+    <h3 class="detail-section-title">Fahrzeuge</h3>
+    <div class="customer-detail-block" id="customerVehiclesList">${renderCustomerVehicles(c)}</div>
+    ${c.vehicles.length ? `<button type="button" class="btn secondary vehicle-add-small" onclick="showAddVehicleForm()">+ Fahrzeug hinzufügen</button>` : ``}
+    <h3 class="detail-section-title">Notizen</h3>
+    <textarea id="customerNote" class="customer-note" placeholder="Hier können jederzeit Notizen zum Kunden eingetragen werden…" oninput="saveCustomerNote(${JSON.stringify(c.id)},this.value)">${esc(c.note)}</textarea>
+    <div class="muted" style="margin-top:6px;font-size:12px">Notizen werden automatisch gespeichert.</div>
+    <h3 class="detail-section-title">Kundenbilder</h3>
+    <div class="customer-detail-block">
+      <div id="customerImages">${renderCustomerImages(c)}</div>
+      <label style="display:block;margin-top:10px">Bild hochladen</label>
+      <input type="file" accept="image/*" multiple onchange="uploadCustomerImages(${JSON.stringify(c.id)},this.files)">
+      <div class="muted" style="margin-top:6px;font-size:12px">Bilder werden beim Kunden gespeichert.</div>
+    </div>
+    <details id="addVehicleDetails" class="vehicle-add-form" style="margin-top:18px;opacity:.95;${c.vehicles.length?'display:none':''}"><summary style="font-size:11px;cursor:pointer">Fahrzeug hinzufügen</summary>
+      <form style="margin-top:10px" onsubmit="addCustomerVehicle(event,${JSON.stringify(c.id)})"><div class="vehicle-grid">
+        <div><label>Marke *</label><input name="brand" required></div><div><label>Modell *</label><input name="model" required></div>
+        <div class="full"><label>Motor *</label><input name="motor" required placeholder="z. B. 2.0 TDI"></div>
+        <div><label>Erstzulassung *</label><input name="registration" type="text" required placeholder="z. B. 05/2018"></div><div><label>HSN</label><input name="hsn"></div>
+        <div><label>TSN</label><input name="tsn"></div><div><label>HU/AU</label><input name="huau" type="text" placeholder="z. B. 06/2027"></div>
+        <div class="full"><label>Laufleistung</label><input name="mileage" type="number" min="0" step="1" placeholder="z. B. 125000"></div>
+        <div class="full"><label>Notizen zum Fahrzeug</label><textarea name="note" rows="3" placeholder="z. B. Besonderheiten, Schäden, Wünsche …"></textarea></div>
+      </div><div class="actions"><button class="btn">Fahrzeug speichern</button></div></form>
+    </details>`;
+  openModal('customerDetailModal');
+}
+function enableCustomerEdit(id){const view=document.getElementById('customerInfoView'),form=document.getElementById('customerEditForm');if(view)view.style.display='none';if(form)form.style.display='block';}
+function saveCustomerDetails(e,id){e.preventDefault();const c=getCustomer(id);if(!c)return false;const f=e.target;c.name=f.name.value.trim();c.email=f.email.value.trim();c.phone=f.phone.value.trim();c.address=f.address.value.trim();if(!c.name){alert('Bitte einen Namen eingeben.');return false;}audit('hat die Kundendetails von „'+c.name+'“ bearbeitet');saveState();openCustomerDetail(id);renderCustomers(document.getElementById('customerSearch')?.value||'');showToast('Kundendetails gespeichert');return false;}
+function renderVehicleImages(v,cid,index){
+  if(!Array.isArray(v.images))v.images=[];
+  if(!v.images.length)return '<div class="muted vehicle-images-empty">Noch keine Fahrzeugpapiere hinterlegt.</div>';
+  return `<div class="vehicle-images">${v.images.map((src,j)=>`<div class="vehicle-image-thumb"><img src="${src}" alt="Fahrzeugpapier" onclick="openVehicleImage(${JSON.stringify(cid)},${index},${j})" title="Bild vergrößern"><a class="btn secondary image-download-btn" href="${src}" download="Fahrzeugpapier-${j+1}.png" style="position:absolute;left:3px;bottom:3px;right:3px;width:auto;margin:0">↓</a><button type="button" class="btn danger vehicle-image-delete" onclick="deleteVehicleImage(${JSON.stringify(cid)},${index},${j})">×</button></div>`).join('')}</div>`;
+}
+function renderCustomerVehicles(c){
+  if(!c.vehicles?.length){
+    return `<div class="vehicle-empty"><div class="muted">Noch kein Fahrzeug hinterlegt.</div><button type="button" class="btn vehicle-add-empty" onclick="showAddVehicleForm()">Fahrzeug hinzufügen</button></div>`;
+  }
+  return c.vehicles.map((v,i)=>{if(!Array.isArray(v.images))v.images=[];return `<details class="vehicle-item vehicle-details">
+    <summary><strong>${esc(v.brand||'')} ${esc(v.model||'')} · ${esc(v.motor||'Motor unbekannt')}</strong><span class="muted vehicle-summary-arrow">›</span></summary>
+    <div class="vehicle-expanded">
+      <form onsubmit="saveCustomerVehicle(event,${JSON.stringify(c.id)},${i})">
+        <div class="vehicle-grid">
+          <div><label>Marke *</label><input name="brand" required value="${esc(v.brand||'')}"></div>
+          <div><label>Modell *</label><input name="model" required value="${esc(v.model||'')}"></div>
+          <div class="full"><label>Motor *</label><input name="motor" required value="${esc(v.motor||'')}"></div>
+          <div><label>Erstzulassung *</label><input name="registration" required value="${esc(v.registration||'')}"></div>
+          <div><label>HSN</label><input name="hsn" value="${esc(v.hsn||'')}"></div>
+          <div><label>TSN</label><input name="tsn" value="${esc(v.tsn||'')}"></div>
+          <div><label>HU/AU</label><input name="huau" value="${esc(v.huau||'')}"></div>
+          <div class="full"><label>Laufleistung</label><input name="mileage" type="number" min="0" step="1" value="${esc(v.mileage??'')}"></div>
+          <div class="full"><label>Notizen zum Fahrzeug</label><textarea name="note" rows="3" placeholder="z. B. Besonderheiten, Schäden, Wünsche …">${esc(v.note||'')}</textarea></div>
+          <div class="full vehicle-papers-block"><label>Fahrzeugpapiere / Bilder <span class="muted">(${v.images.length}/2)</span></label>${renderVehicleImages(v,c.id,i)}<input type="file" accept="image/*" ${v.images.length>=2?'disabled':''} onchange="uploadVehicleImages(${JSON.stringify(c.id)},${i},this.files)"><div class="muted vehicle-image-hint">Bis zu 2 Bilder. Zum Vergrößern anklicken.</div></div>
+        </div>
+        <div class="actions vehicle-actions">
+          <button type="button" class="btn danger" onclick="deleteCustomerVehicle(${JSON.stringify(c.id)},${i})">Fahrzeug löschen</button>
+          <button class="btn">Fahrzeugdaten speichern</button>
+        </div>
+      </form>
+    </div>
+  </details>`;}).join('');
+}
+function uploadVehicleImages(cid,index,files){
+  const c=getCustomer(cid),v=c?.vehicles?.[index]; if(!v||!files||!files.length)return;
+  if(!Array.isArray(v.images))v.images=[];
+  const list=[...files].filter(f=>f.type&&f.type.startsWith('image/')).slice(0,2-v.images.length);
+  if(!list.length){alert('Für jedes Fahrzeug sind maximal 2 Bilder möglich.');return;}
+  let done=0; list.forEach(file=>{const r=new FileReader();r.onload=()=>{v.images.push(r.result);done++;if(done===list.length){saveState();openCustomerDetail(cid);renderCustomers(document.getElementById('customerSearch')?.value||'');showToast('Fahrzeugbild gespeichert');}};r.readAsDataURL(file);});
+}
+function openVehicleImage(cid,index,imgIndex){
+  const c=getCustomer(cid),v=c?.vehicles?.[index]; if(!v?.images?.[imgIndex])return;
+  window.viewedVehicleImage={cid,index,imgIndex};
+  document.getElementById('vehicleImageViewerImg').src=v.images[imgIndex];
+  const dl=document.getElementById('vehicleImageDownload'); if(dl){dl.href=v.images[imgIndex];dl.download='Fahrzeugpapier-'+(imgIndex+1)+'.png';}
+  document.getElementById('vehicleImageViewerTitle').textContent=(v.brand||'Fahrzeug')+' – Fahrzeugpapier';
+  openModal('vehicleImageViewer');
+}
+function deleteVehicleImage(cid,index,imgIndex){
+  const c=getCustomer(cid),v=c?.vehicles?.[index]; if(!v?.images?.[imgIndex])return;
+  if(!confirm('Dieses Fahrzeugbild wirklich löschen?'))return;
+  v.images.splice(imgIndex,1);saveState();openCustomerDetail(cid);renderCustomers(document.getElementById('customerSearch')?.value||'');
+}
+function deleteViewedVehicleImage(){
+  const x=window.viewedVehicleImage;if(!x)return;deleteVehicleImage(x.cid,x.index,x.imgIndex);closeModal('vehicleImageViewer');window.viewedVehicleImage=null;
+}
+function showAddVehicleForm(){
+  const box=document.getElementById('addVehicleDetails');
+  if(!box)return;
+  box.style.display='block';
+  box.open=true;
+  setTimeout(()=>box.scrollIntoView({behavior:'smooth',block:'center'}),30);
+}
+function vehicleField(form,name){
+  return form?.elements?.namedItem(name)||null;
+}
+function vehicleFieldValue(form,name){
+  const el=vehicleField(form,name);
+  return el ? String(el.value??'').trim() : '';
+}
+function saveCustomerVehicle(e,id,index){
+  e.preventDefault();
+  const c=getCustomer(id); if(!c||!Array.isArray(c.vehicles)||!c.vehicles[index])return false;
+  const f=e.target, v=c.vehicles[index];
+  v.brand=vehicleFieldValue(f,'brand'); v.model=vehicleFieldValue(f,'model'); v.motor=vehicleFieldValue(f,'motor'); v.registration=vehicleFieldValue(f,'registration');
+  v.hsn=vehicleFieldValue(f,'hsn'); v.tsn=vehicleFieldValue(f,'tsn'); v.huau=vehicleFieldValue(f,'huau'); v.mileage=vehicleFieldValue(f,'mileage'); v.note=vehicleFieldValue(f,'note');
+  if(!v.brand||!v.model||!v.motor||!v.registration){alert('Bitte alle Pflichtfelder ausfüllen.');return false;}
+  audit(`hat die Fahrzeugdaten von „${v.brand} ${v.model}“ bei „${c.name}“ bearbeitet`);
+  saveState(); openCustomerDetail(id); render(); showToast('Fahrzeugdaten gespeichert'); return false;
+}
+function addCustomerVehicle(e,id){
+  e.preventDefault();
+  const c=getCustomer(id); if(!c)return false;
+  const f=e.target;
+  const vehicle={
+    id:Date.now(),
+    brand:vehicleFieldValue(f,'brand'),
+    model:vehicleFieldValue(f,'model'),
+    motor:vehicleFieldValue(f,'motor'),
+    registration:vehicleFieldValue(f,'registration'),
+    hsn:vehicleFieldValue(f,'hsn'),
+    tsn:vehicleFieldValue(f,'tsn'),
+    huau:vehicleFieldValue(f,'huau'),
+    mileage:vehicleFieldValue(f,'mileage'),
+    note:vehicleFieldValue(f,'note'),
+    images:[]
+  };
+  if(!vehicle.brand||!vehicle.model||!vehicle.motor||!vehicle.registration){alert('Bitte alle Pflichtfelder ausfüllen.');return false;}
+  if(!Array.isArray(c.vehicles))c.vehicles=[];
+  c.vehicles.push(vehicle);
+  audit(`hat für „${c.name}“ ein Fahrzeug angelegt`);
+  saveState();
+  openCustomerDetail(id);
+  render();
+  showToast('Fahrzeug gespeichert');
+  return false;
+}
+function deleteCustomerVehicle(id,index){const c=getCustomer(id); if(!c||!c.vehicles?.[index])return; if(!confirm('Dieses Fahrzeug wirklich löschen?'))return; c.vehicles.splice(index,1); saveState(); audit(`hat ein Fahrzeug von „${c.name}“ gelöscht`); openCustomerDetail(id); render();}
+function renderCustomerImages(c){
+  if(!Array.isArray(c.images))c.images=[];
+  if(!c.images.length)return '<div class="muted">Noch keine Bilder gespeichert.</div>';
+  return `<div style="display:flex;flex-wrap:wrap;gap:10px">${c.images.map((src,i)=>`<div style="position:relative"><img src="${src}" alt="Kundenbild" style="width:130px;height:100px;object-fit:cover;border-radius:10px;border:1px solid var(--border)"><a class="btn secondary image-download-btn" href="${src}" download="Kundenbild-${i+1}.png">Bild herunterladen</a><button class="btn danger" type="button" style="position:absolute;top:4px;right:4px;padding:3px 7px" onclick="deleteCustomerImage(${JSON.stringify(c.id)},${i})">×</button></div>`).join('')}</div>`;
+}
+function uploadCustomerImages(id,files){
+  const c=getCustomer(id); if(!c||!files||!files.length)return;
+  if(!Array.isArray(c.images))c.images=[];
+  const list=[...files].filter(f=>f.type&&f.type.startsWith('image/'));
+  let done=0;
+  if(!list.length){alert('Bitte eine Bilddatei auswählen.');return;}
+  list.forEach(file=>{const r=new FileReader();r.onload=()=>{c.images.push(r.result);done++;if(done===list.length){saveState();openCustomerDetail(id);renderCustomers(document.getElementById('customerSearch')?.value||'');showToast('Kundenbild gespeichert');}};r.readAsDataURL(file);});
+}
+function deleteCustomerImage(id,index){const c=getCustomer(id);if(!c||!c.images?.[index])return;if(!confirm('Dieses Bild wirklich löschen?'))return;c.images.splice(index,1);saveState();openCustomerDetail(id);renderCustomers(document.getElementById('customerSearch')?.value||'');}
+function getCustomerOpenItems(id){
+  const orders=state.orders.filter(o=>String(o.customer)===String(id)&&!isOrderCompleted(o));
+  const invoices=state.invoices.filter(i=>String(i.customer)===String(id)&&['Offen','Geschrieben','Gestellt'].includes(String(i.status||'Offen')));
+  return {orders,invoices};
+}
+function customerOpenSummary(c){
+  const x=getCustomerOpenItems(c.id);
+  if(!x.orders.length&&!x.invoices.length)return '';
+  return `<div class="customer-open-summary"><strong>Offene Vorgänge</strong><div class="customer-open-pills">${x.orders.length?`<span>${x.orders.length} offene ${x.orders.length===1?'Auftrag':'Aufträge'}</span>`:''}${x.invoices.length?`<span>${x.invoices.length} offene ${x.invoices.length===1?'Rechnung':'Rechnungen'}</span>`:''}</div></div>`;
+}
+function toggleOpenCustomerFilter(){
+  openCustomerFilter=!openCustomerFilter;
+  const btn=document.getElementById('openCustomerFilterBtn');
+  if(btn){btn.textContent=openCustomerFilter?'Alle Kunden anzeigen':'Offene Vorgänge';btn.classList.toggle('active',openCustomerFilter);}
+  renderCustomers(document.getElementById('customerSearch')?.value||'');
+}
+function renderCustomers(filter=''){
+  const q=String(filter||'').trim().toLowerCase();
+  const list=state.customers.filter(c=>{
+    const matchesSearch=!q||[c.name,c.email,c.phone,c.address].join(' ').toLowerCase().includes(q);
+    return matchesSearch && (!openCustomerFilter || getCustomerOpenItems(c.id).orders.length || getCustomerOpenItems(c.id).invoices.length);
+  });
+  const sortedCustomers=list.sort((a,b)=>a.name.localeCompare(b.name,'de',{sensitivity:'base'}));
+  const customersList=document.getElementById('customersList'); if(!customersList)return;
+  customersList.innerHTML=sortedCustomers.map(c=>`<div class="card customer-card" onclick="openCustomerDetail(${JSON.stringify(c.id)})"><div class="customer-summary"><div><div class="compact-customer-name">${esc(c.name)}</div>${openCustomerFilter?customerOpenSummary(c):''}<div class="muted">${esc(c.email||'Keine E-Mail')}<br>${esc(c.phone||'Keine Telefonnummer')}</div><div class="muted" style="margin-top:5px">${Array.isArray(c.vehicles)?c.vehicles.length:0} Fahrzeug(e) · ${Array.isArray(c.images)?c.images.length:0} Bild(er)</div></div><div style="text-align:right"><div class="muted">Offen</div><div class="amount ${c.open?'negative':'positive'}">${money(c.open)}</div><button class="btn danger" style="margin-top:10px" onclick="event.stopPropagation();deleteCustomer(${JSON.stringify(c.id)})">Löschen</button></div></div></div>`).join('')||'<div class="card muted">Keine Kunden gefunden.</div>';
+}
+function saveCustomerNote(id,value){const c=getCustomer(id); if(!c)return; c.note=value; saveState();}
+function addCustomer(e){e.preventDefault();const first=(custFirstName.value||'').trim(),last=(custLastName.value||'').trim();if(!first||!last){alert('Bitte Vorname und Nachname ausfüllen.');return false;}const displayName=last+' '+first;state.customers.push({id:Date.now(),firstName:first,lastName:last,name:displayName,email:custEmail.value,phone:custPhone.value,address:custAddress.value,open:0,note:"",vehicles:[],images:[]});audit('hat den Kunden „'+displayName+'“ angelegt');e.target.reset();closeModal('customerModal');saveState();render();return false}
+function partEl(id){ return document.getElementById(id); }
+let editedPartId=null;
+function openPartModal(id=null){
+  const editId=partEl("partEditId"), title=partEl("partModalTitle"), saveBtn=partEl("partSaveBtn");
+  const p=id!=null?state.parts.find(x=>String(x.id)===String(id)):null;
+  if(id!=null) editedPartId=Number(id);
+  if(id!=null && !p){ showToast("Teil wurde nicht gefunden."); return; }
+  editId.value=p?String(p.id):"";
+  title.textContent=p?"Teil bearbeiten":"Teil hinzufügen";
+  saveBtn.textContent=p?"Änderungen speichern":"Teil hinzufügen";
+  partEl("partName").value=p?.name||"";
+  partEl("partPrice").value=p?.price??"";
+  partEl("partCost").value=p?.cost??"";
+  partEl("partQty").value=p?.qty??0;
+  partEl("partImg").value=p?.img||"";
+  partEl("partImgFile").value="";
+  showPartPreview(p?.img||"");
+  openModal("partModal");
+  if(id!=null) renderParts(document.getElementById("partSearch")?.value||"");
+}
+function savePart(e){
+  if(e) e.preventDefault();
+  const id=partEl("partEditId").value.trim();
+  const name=partEl("partName").value.trim();
+  const price=Number(partEl("partPrice").value);
+  const cost=Number(partEl("partCost").value);
+  const qty=Number(partEl("partQty").value);
+  const category=partEl("partCategory")?.value||"";
+  const img=partEl("partImg").value||"";
+  const allowedCategories=["VAG","BMW Group","Mercedes-Benz Group","Stellantis","Weitere","Allgemeines","Flüssigkeiten"];
+  if(!name){ alert("Bitte eine Bezeichnung eingeben."); return false; }
+  if(!allowedCategories.includes(category)){ alert("Bitte einen Bereich auswählen."); return false; }
+  if(!Number.isFinite(price)||price<0||!Number.isFinite(cost)||cost<0||!Number.isFinite(qty)||qty<0){ alert("Bitte gültige Preise und einen gültigen Bestand eingeben."); return false; }
+  let part;
+  if(id){
+    part=state.parts.find(x=>String(x.id)===String(id));
+    if(!part){ alert("Das Teil konnte nicht gefunden werden."); return false; }
+    Object.assign(part,{name,price,cost,qty,img,category});
+    audit('hat das Kundenlagerteil „'+name+'“ bearbeitet');
+  } else {
+    const newId=(state.parts.reduce((m,x)=>Math.max(m,Number(x.id)||0),0)+1);
+    part={id:newId,name,price,cost,qty,img,category};
+    state.parts.push(part);
+    audit('hat das Kundenlagerteil „'+name+'“ angelegt');
+  }
+  try { saveState(); } catch(err) { console.error(err); }
+  closeModal("partModal"); render(); showToast(id?"Teil erfolgreich gespeichert":"Teil erfolgreich hinzugefügt");
+  return false;
+}
+function loadPartImageFile(e){
+  const f=e.target?.files?.[0]; if(!f)return;
+  if(!f.type.startsWith("image/")){ alert("Bitte eine Bilddatei auswählen."); e.target.value=""; return; }
+  const reader=new FileReader();
+  reader.onload=()=>{ const img=new Image(); img.onload=()=>{
+    const max=1400, scale=Math.min(1,max/Math.max(img.width,img.height));
+    const canvas=document.createElement("canvas"); canvas.width=Math.max(1,Math.round(img.width*scale)); canvas.height=Math.max(1,Math.round(img.height*scale));
+    canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+    partEl("partImg").value=canvas.toDataURL("image/jpeg",0.75); showPartPreview(partEl("partImg").value); showToast("Bild übernommen");
+  }; img.onerror=()=>alert("Das Bild konnte nicht verarbeitet werden."); img.src=reader.result; };
+  reader.onerror=()=>alert("Das Bild konnte nicht gelesen werden."); reader.readAsDataURL(f);
+}
+function showPartPreview(src){ const img=partEl("partPreview"); if(!img)return; img.src=src||""; img.style.display=src?"block":"none"; }
+function removePartImage(){ partEl("partImg").value=""; partEl("partImgFile").value=""; showPartPreview(""); showToast("Bild entfernt"); }
+function addOrder(e){e.preventDefault(); const id=nextOrderId(); state.orders.unshift({id,customer:+orderCustomer.value,desc:orderDesc.value,status:"offen",seconds:0,total:0,running:false,items:[],payments:[],audit:[],workLog:[]}); audit('hat den Auftrag #'+formatOrderId(id)+' „'+orderDesc.value+'“ angelegt');e.target.reset();closeModal('orderModal');saveState();render();}
+function toggleTimer(id){
+  const o=state.orders.find(x=>String(x.id)===String(id)); if(!o)return;
+  normalizeOrder(o);
+  const user=currentUser||"Unbekannt";
+  o.running=!o.running;
+  if(o.running){
+    o._workSession={user,start:Date.now(),seconds:0};
+    timerHandles[id]=setInterval(()=>{
+      o.seconds++;
+      if(o._workSession)o._workSession.seconds++;
+      renderTimer(id);
+    },1000);
+    audit('hat die Arbeitszeit für Auftrag #'+id+' gestartet');
+  }else{
+    if(timerHandles[id]){clearInterval(timerHandles[id]);delete timerHandles[id];}
+    if(o._workSession){
+      o.workLog.push({user:o._workSession.user,start:new Date(o._workSession.start).toISOString(),end:new Date().toISOString(),seconds:Number(o._workSession.seconds)||0});
+      delete o._workSession;
+    }
+    audit('hat die Arbeitszeit für Auftrag #'+id+' gestoppt');
+  }
+  // Button sofort aktualisieren, damit ▶/■ unmittelbar sichtbar wechselt.
+  const row=document.querySelector(`button[onclick="toggleTimer(${id})"]`);
+  if(row)row.textContent=o.running?'■':'▶';
+  saveState();
+  render();
+}
+function renderTimer(id){let el=document.getElementById('t'+id);if(el){let o=state.orders.find(x=>x.id==id);el.textContent=fmtTime(o.seconds)}}
+function createInvoice(){
+  const c=state.customers.find(x=>x.open>0)||state.customers[0];
+  const invoice={id:"RE-"+new Date().getFullYear()+"-"+String(Math.floor(Math.random()*9000)+1000),
+    customer:c.id,date:new Date().toLocaleDateString('de-DE'),amount:c.open||500,status:"Offen",
+    order:null,items:[{name:"Rechnungsbetrag",type:"sonstiges",qty:1,price:c.open||500}]};
+  state.invoices.unshift(invoice);
+  audit('hat eine neue Rechnung '+invoice.id+' erstellt');
+  saveState(); render(); openInvoice(invoice.id);
+}
+function openInvoice(id){
+  const inv=state.invoices.find(x=>x.id===id); if(!inv)return;
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.getElementById('invoiceDetailView').classList.add('active');
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+  renderInvoiceDetail(inv);
+}
+function renderInvoiceDetail(inv){
+  document.getElementById('invoiceDetailTitle').textContent=inv.id;
+  const c=state.customers.find(x=>x.id==inv.customer);
+  const items=inv.items&&inv.items.length?inv.items:[{name:"Rechnungsbetrag",type:"sonstiges",qty:1,price:inv.amount}];
+  const total=items.reduce((a,i)=>a+(Number(i.price)||0)*(Number(i.qty)||1),0);
+  const date=inv.date||new Date().toLocaleDateString('de-DE');
+  invoicePrintView.innerHTML=`<div class="invoice-detail">
+    <div class="invoice-head">
+      <div><h1>RECHNUNG</h1><div>WerkFlow</div><div class="muted">Rechnungsnummer: ${inv.id}</div><div class="muted">Datum: ${date}</div></div>
+      <div style="text-align:right"><strong>Rechnung an</strong><br>${c?.name||"—"}<br>${c?.address||""}<br>${c?.email||""}<br>${c?.phone||""}</div>
+    </div>
+    <table class="invoice-lines"><thead><tr><th>Auflistung / Position</th><th>Menge</th><th>Einzelpreis</th><th>Gesamt</th></tr></thead>
+    <tbody>${items.map(i=>`<tr><td>${i.name}</td><td>${i.qty||1}</td><td>${money(i.price||0)}</td><td>${money((i.price||0)*(i.qty||1))}</td></tr>`).join('')}</tbody></table>
+    <div class="invoice-total">Gesamtbetrag: <strong>${money(total)}</strong><br><span style="font-size:13px">Status: ${inv.status}</span></div>
+  </div>`;
+  inv.amount=total;
+}
+function printCurrentInvoice(){ window.print(); }
+function formatOrderId(id){ return String(Number(id)||0).padStart(4,"0"); }
+const ORDER_STATUSES=["offen","Teile bestellen","Teile bestellt","in Arbeit","fertigstellen","Fertig"];
+function normalizeStatus(status){ const raw=String(status||"").trim(); const map={"offen":"offen","Offen":"offen","teile bestellen":"Teile bestellen","Teile bestellen":"Teile bestellen","teile bestellt":"Teile bestellt","Teile bestellt":"Teile bestellt","in arbeit":"in Arbeit","In Arbeit":"in Arbeit","fertigstellen":"fertigstellen","Fertigstellen":"fertigstellen","fertig":"Fertig","Fertig":"Fertig"}; return map[raw]||"offen"; }
+function isOrderCompleted(order){ return normalizeStatus(order?.status)==="Fertig"; }
+function statusClass(status){ const s=normalizeStatus(status).toLowerCase(); if(s==="offen"||s==="teile bestellen")return "red"; if(s==="teile bestellt"||s==="in arbeit")return "orange"; if(s==="fertigstellen")return "yellow"; return "green"; }
+function statusSelectClass(status){ return "status-"+statusClass(status); }
+function setOrderStatus(id,status){ const o=state.orders.find(x=>String(x.id)===String(id)); if(!o)return false; const wanted=String(status??"").trim().replace(/\s+/g," "); const normalized=ORDER_STATUSES.find(x=>x.toLowerCase()===wanted.toLowerCase())||normalizeStatus(wanted); if(!ORDER_STATUSES.includes(normalized))return false; const old=normalizeStatus(o.status); if(old===normalized)return true; o.status=normalized; orderAudit(o,`den Status von „${old}“ auf „${normalized}“ geändert`); saveState(); render(); if(detailOrderId==id)renderOrderDetail(); return true; }
+function nextOrderId(){ return state.orders.length ? Math.max(...state.orders.map(o=>Number(o.id)||0))+1 : 0; }
+let viewedPartImageId=null;
+function openPartImage(id){
+  const p=state.parts.find(x=>String(x.id)===String(id));
+  if(!p || !p.img)return;
+  viewedPartImageId=p.id;
+  document.getElementById("partImageViewerTitle").textContent=p.name||"Bild";
+  document.getElementById("partImageViewerImg").src=p.img;
+  const dl=document.getElementById("partImageDownload"); if(dl){dl.href=p.img;dl.download=(p.name||"Kundenlagerbild")+".png";}
+  openModal("partImageViewer");
+}
+function deleteViewedPartImage(){
+  const p=state.parts.find(x=>String(x.id)===String(viewedPartImageId));
+  if(!p || !p.img)return;
+  if(!confirm("Das Bild dieses Teils wirklich löschen?"))return;
+  p.img="";
+  audit('hat das Bild des Teils „'+(p.name||"Unbenannt")+'“ gelöscht');
+  saveState();
+  closeModal("partImageViewer");
+  renderParts(document.getElementById("partSearch")?.value||"");
+  showToast("Bild gelöscht");
+  viewedPartImageId=null;
+}
+
+function renderParts(filter=""){
+  const q=String(filter||"").trim().toLowerCase();
+  const categoryFilter=document.getElementById("inventoryCategoryFilter")?.value||"Alle";
+  const allowed=["VAG","BMW Group","Mercedes-Benz Group","Stellantis","Weitere","Allgemeines","Flüssigkeiten"];
+  const sortedParts=[...state.parts]
+    .map(p=>({...p,category:allowed.includes(p.category)?p.category:"Allgemeines"}))
+    .filter(p=>p.module!=="stockSales")
+    .filter(p=>{
+      const matchesSearch=!q||String(p.name||"").toLowerCase().includes(q) || String(p.partNumber||"").toLowerCase().includes(q);
+      const matchesCategory=categoryFilter==="Alle"||p.category===categoryFilter;
+      return matchesSearch&&matchesCategory;
+    })
+    .sort((a,b)=>a.name.localeCompare(b.name,"de",{sensitivity:"base"}));
+  parts.innerHTML=sortedParts.map(p=>`<div class="card part-card" data-part-category="${p.category}">
+    <div class="part-card-image-wrap">
+      ${p.img?`<img src="${p.img}" class="part-card-image" alt="${esc(p.name)}" onclick="openPartImage(${p.id})" title="Bild vergrößern">`:'<span style="font-size:35px">◈</span>'}
+    </div>
+    <div class="part-card-head"><div><h3>${esc(p.name)}</h3>${p.partNumber?`<div class="muted part-number">TN: ${esc(p.partNumber)}</div>`:""}</div><span class="part-category-badge">${esc(p.category)}</span></div>
+    <div class="muted">Bestand: ${p.qty}</div>
+    <div class="muted">Einkauf: ${money(p.cost||0)} · Verkauf: ${money(p.price)}</div>
+    <div class="part-card-actions">
+      <div class="part-main-actions">
+        <button class="btn" onclick="openBookPartModal(${p.id})">Auftrag buchen</button>
+        <button class="btn" onclick="openQuickStock(${p.id},'add')">+ Buchen</button>
+      </div>
+      <button class="btn secondary part-edit-btn" onclick="openPartModal(${p.id})">Bearbeiten</button>
+      ${editedPartId===Number(p.id)?`<div class="part-sub-actions part-sub-actions-visible">
+        
+        <button class="btn danger" onclick="deletePart(${p.id})">Löschen</button>
+      </div>`:''}
+    </div>
+  </div>`).join("") || '<div class="card muted">Keine Teile für diesen Filter gefunden.</div>';
+}
+function getPartAreas(part){
+  const raw=Array.isArray(part?.areas)?part.areas:(part?.area?[part.area]:[]);
+  const a=raw.map(x=>String(x||'').trim()).map(x=>{
+    const key=x.toLocaleLowerCase('de-DE');
+    return key==='lager'?'Lager':key==='verkauf'?'Verkauf':'';
+  }).filter(Boolean);
+  return [...new Set(a)];
+}
+function isStockSalesPart(part){
+  const module=String(part?.module||'').trim().toLowerCase();
+  if(['stocksales','stock-sales','lagerverkauf','lager/verkauf'].includes(module)) return true;
+  // Legacy-Datensätze aus älteren Versionen hatten noch kein module-Feld.
+  // Verkauf ist eindeutig Lager/Verkauf und darf deshalb nicht aus dem Filter fallen.
+  return getPartAreas(part).includes('Verkauf');
+}
+function stockSalesDueState(part){
+  const needsPlacement=part?.needsPlacement===true;
+  const due=String(part?.placementDue||'').trim();
+  if(needsPlacement) return {fällig:true,reason:'Muss noch reingestellt werden'};
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(due)) return {fällig:false,reason:''};
+
+  // Lokales Kalenderdatum als reines YYYY-MM-DD vergleichen.
+  // Fällig = heute/überfällig ODER weniger als 14 Tage in der Zukunft.
+  const now=new Date();
+  const todayDate=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const today=todayDate.getFullYear()+'-'+String(todayDate.getMonth()+1).padStart(2,'0')+'-'+String(todayDate.getDate()).padStart(2,'0');
+  const diffMs=Date.parse(due+'T00:00:00')-Date.parse(today+'T00:00:00');
+  const diffDays=Math.round(diffMs/86400000);
+  const fällig=diffDays<=14;
+  let reason='';
+  if(fällig){
+    reason=diffDays<0?'Reingestellt bis überschritten':(diffDays===0?'Reingestellt bis heute':'Reingestellt bis in weniger als 14 Tagen');
+  }
+  return {fällig,reason,diffDays};
+}
+function updateStockSalesTodoButton(){
+  const btn=document.getElementById('stockSalesTodoBtn');
+  if(!btn)return;
+  btn.textContent=stockSalesTodoFilter?'✓ Fällig':'Fällig';
+  btn.classList.toggle('active',stockSalesTodoFilter);
+  btn.setAttribute('aria-pressed',String(stockSalesTodoFilter));
+  btn.title=stockSalesTodoFilter?'Fällig-Filter aktiv – nur fällige Teile anzeigen':'Fällig-Filter inaktiv – alle Teile anzeigen';
+}
+function toggleStockSalesTodo(){
+  stockSalesTodoFilter=!stockSalesTodoFilter;
+  updateStockSalesTodoButton();
+  renderStockSales(document.getElementById('stockSalesSearch')?.value||'');
+}
+function toggleSalesTodoFields(){
+  const sale=document.getElementById('partAreaSelect')?.value==='Verkauf';
+  const wrap=document.getElementById('salesTodoFields');
+  if(wrap) wrap.style.display=sale?'block':'none';
+}
+function renderStockSales(filter=''){
+  const box=document.getElementById('stockSalesParts');
+  if(!box)return;
+  const q=String(filter??'').trim().toLocaleLowerCase('de-DE');
+  const selectedRaw=document.getElementById('stockSalesAreaFilter')?.value||'Alle';
+  const selected=selectedRaw==='Lager'?'Lager':selectedRaw==='Verkauf'?'Verkauf':'Alle';
+
+  // Alle Filter arbeiten immer auf derselben normalisierten Ausgangsmenge.
+  // Dadurch sind Suche + Bereich + Fällig beliebig miteinander kombinierbar.
+  const rows=state.parts
+    .filter(p=>isStockSalesPart(p))
+    .map(p=>{
+      const areas=getPartAreas(p);
+      return {...p,areas,due:stockSalesDueState(p)};
+    })
+    .filter(p=>{
+      const text=[p.name,p.partNumber,p.category].map(v=>String(v??'')).join(' ').toLocaleLowerCase('de-DE');
+      const matchesSearch=!q||text.includes(q);
+      const matchesArea=selected==='Alle'||p.areas.includes(selected);
+      const matchesDue=!stockSalesTodoFilter||p.due.fällig===true;
+      return matchesSearch&&matchesArea&&matchesDue;
+    })
+    .sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'de',{sensitivity:'base'}));
+
+  box.innerHTML=rows.map(p=>`<div class="card part-card ${p.due.fällig?'part-todo-card':''}">
+    <div class="part-card-image-wrap">${p.img?`<img src="${p.img}" class="part-card-image" alt="${esc(p.name)}" onclick="openPartImage(${p.id})" title="Bild vergrößern">`:'<span style="font-size:35px">◈</span>'}</div>
+    <div class="part-card-head"><div><h3>${p.due.fällig?'<span class="todo-warning" title="Fällig">!</span> ':''}${esc(p.name)}</h3>${p.partNumber?`<div class="muted part-number">TN: ${esc(p.partNumber)}</div>`:''}</div><span class="part-category-badge">${esc(p.areas.join(' · '))}</span></div>
+    <div class="muted">Bestand: ${p.qty}</div><div class="muted">Einkauf: ${money(p.cost||0)} · Verkauf: ${money(p.price)}</div>
+    ${p.placementDue?`<div class="muted">Reingestellt bis: ${formatDate(p.placementDue)}</div>`:''}
+    ${p.needsPlacement?'<div class="todo-note">Muss noch reingestellt werden</div>':''}
+    <div class="part-card-actions"><div class="part-main-actions"><button class="btn" onclick="openBookPartModal(${p.id})">Auftrag buchen</button><button class="btn" onclick="openQuickStock(${p.id},'add')">+ Buchen</button></div><button class="btn secondary" onclick="openPartModal(${p.id})">Bearbeiten</button></div>
+  </div>`).join('') || '<div class="card muted">Keine Teile für die gewählten Filter gefunden.</div>';
+}
+function renderOrders(filter=""){
+  const mode=document.getElementById('orderFilter')?.value||'all';
+  let rows=state.orders.filter(o=>(formatOrderId(o.id)+" "+o.desc+" "+customerName(o.customer)).toLowerCase().includes(String(filter||'').toLowerCase()));
+  if(mode==='not-finished') rows=rows.filter(o=>!isOrderCompleted(o));
+  rows.sort((a,b)=>Number(b.id)-Number(a.id));
+  const ordersTable=document.getElementById('ordersTable'); if(!ordersTable)return;
+  ordersTable.innerHTML=rows.map(o=>{ const st=normalizeStatus(o.status); return `<tr><td data-label="Nr."><button class="btn secondary" style="padding:5px 9px" onclick="openOrder(${o.id})">#${formatOrderId(o.id)}</button></td><td data-label="Kunde">${customerName(o.customer)}</td><td data-label="Beschreibung">${esc(o.desc||'')}</td><td data-label="Status"><select class="status-select ${statusSelectClass(st)}" onchange="setOrderStatus(${o.id},this.value)" aria-label="Status">${ORDER_STATUSES.map(x=>`<option value="${x}" ${st===x?'selected':''}>${x}</option>`).join('')}</select></td><td data-label="Timer"><div class="timer"><span class="time" id="t${o.id}">${fmtTime(o.seconds)}</span><button class="btn secondary" style="padding:5px 8px" onclick="toggleTimer(${o.id})">${o.running?'■':'▶'}</button></div></td><td data-label="Summe">${money(o.total)}</td><td data-label="Aktion"><button class="btn danger" style="padding:5px 8px" onclick="deleteOrder(${o.id})">Löschen</button></td></tr>`; }).join('');
+}
+
+function resetExpenseComparison(){
+  if(currentUser!=="Benjamin"){alert("Nur Benjamin kann den Ausgabenvergleich zurücksetzen.");return;}
+  const purchases=Array.isArray(state.purchases)?state.purchases:[];
+  if(!purchases.length){renderExpenseComparison();return;}
+  if(!confirm("Alle Ausgaben aus dem Ausgabenvergleich entfernen?\nDer Kundenlagerbestand und alle anderen Daten bleiben unverändert."))return;
+  state.expenseComparisonHidden=purchases.map(p=>p.id);
+  audit("hat den Ausgabenvergleich zurückgesetzt");
+  saveState();
+  render();
+}
+function renderExpenseComparison(){
+  const resetBtn=document.getElementById("expenseComparisonResetBtn");
+  if(resetBtn)resetBtn.style.display=currentUser==="Benjamin"?"inline-flex":"none";
+  const hidden=new Set(Array.isArray(state.expenseComparisonHidden)?state.expenseComparisonHidden.map(String):[]);
+  const purchases=(Array.isArray(state.purchases)?state.purchases:[]).filter(p=>!hidden.has(String(p.id)));
+  const totalB=purchases.filter(p=>p.user==="Benjamin").reduce((a,p)=>a+(Number(p.amount)||0),0);
+  const totalM=purchases.filter(p=>p.user==="Malik").reduce((a,p)=>a+(Number(p.amount)||0),0);
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+  set("compareBenjaminTotal",money(totalB)); set("compareMalikTotal",money(totalM));
+  const diffEl=document.getElementById("compareDifference");
+  if(diffEl){
+    const diff=totalB-totalM;
+    const absDiff=Math.abs(diff);
+    diffEl.textContent=money(absDiff);
+    diffEl.style.color=absDiff<0.005 ? "#16a34a" : "#dc2626";
+    const halfEl=document.getElementById("compareHalfDifference");
+    if(halfEl){halfEl.textContent=money(absDiff/2);halfEl.style.color=absDiff<0.005 ? "#16a34a" : "#dc2626";}
+  }
+  const tbody=document.getElementById("expenseComparisonTable"), empty=document.getElementById("expenseComparisonEmpty");
+  if(!tbody)return;
+  if(!purchases.length){tbody.innerHTML="";if(empty)empty.style.display="block";return;}
+  if(empty)empty.style.display="none";
+  tbody.innerHTML=purchases.map((p,i)=>`<tr>
+    <td data-label="Teil / Einkauf"><input id="cmpName${p.id}" value="${esc(p.partName||p.name||"")}" aria-label="Bezeichnung"></td>
+    <td data-label="Menge"><input id="cmpQty${p.id}" type="number" min="0" step="1" value="${Number(p.qty)||0}" aria-label="Menge"></td>
+    <td data-label="Wer"><select id="cmpUser${p.id}" aria-label="Benutzer"><option value="Benjamin" ${p.user==="Benjamin"?"selected":""}>Benjamin</option><option value="Malik" ${p.user==="Malik"?"selected":""}>Malik</option></select></td>
+    <td data-label="Betrag"><input id="cmpAmount${p.id}" type="number" min="0" step="0.01" value="${(Number(p.amount)||0).toFixed(2)}" aria-label="Betrag"></td>
+    <td data-label="Gesamt"><strong>${money(p.amount||0)}</strong></td>
+    <td data-label="Aktionen"><div class="compare-actions"><button class="btn" onclick="savePurchaseEditById(${p.id})">Speichern</button><button class="btn danger" onclick="deletePurchaseById(${p.id})">Löschen</button></div></td>
+  </tr>`).join("");
+}
+function savePurchaseEditById(id){
+  const index=(state.purchases||[]).findIndex(p=>String(p.id)===String(id));
+  if(index<0)return;
+  const p=state.purchases[index];
+  const name=document.getElementById("cmpName"+p.id)?.value.trim();
+  const user=document.getElementById("cmpUser"+p.id)?.value;
+  const amount=Number(document.getElementById("cmpAmount"+p.id)?.value);
+  const qty=Number(document.getElementById("cmpQty"+p.id)?.value);
+  if(!name||!["Benjamin","Malik"].includes(user)||!Number.isFinite(amount)||amount<0||!Number.isFinite(qty)||qty<0){alert("Bitte alle Werte korrekt ausfüllen.");return;}
+  p.partName=name;p.user=user;p.amount=amount;p.qty=qty;
+  if(qty>0)p.unitCost=amount/qty;
+  audit(`hat den Einkauf „${name}“ bearbeitet`);
+  saveState();render();
+}
+function deletePurchaseById(id){
+  const index=(state.purchases||[]).findIndex(p=>String(p.id)===String(id));
+  if(index<0)return;
+  if(!confirm("Diesen Einkauf wirklich löschen?"))return;
+  state.purchases.splice(index,1);
+  saveState();render();
+}
+function savePurchaseEdit(index){
+  const p=state.purchases[index]; if(!p)return;
+  const name=document.getElementById("cmpName"+index)?.value.trim();
+  const user=document.getElementById("cmpUser"+index)?.value;
+  const amount=Number(document.getElementById("cmpAmount"+index)?.value);
+  const qty=Number(document.getElementById("cmpQty"+index)?.value);
+  if(!name||!["Benjamin","Malik"].includes(user)||!Number.isFinite(amount)||amount<0||!Number.isFinite(qty)||qty<0){alert("Bitte alle Werte korrekt ausfüllen.");return;}
+  p.partName=name;p.user=user;p.amount=amount;p.qty=qty;
+  if(qty>0)p.unitCost=amount/qty;
+  audit(`hat den Einkauf „${name}“ bearbeitet`);
+  saveState();render();
+}
+function deletePurchase(index){if(!confirm("Diesen Einkauf wirklich löschen?"))return;state.purchases.splice(index,1);saveState();render();}
+function getTodoFilterValue(){
+  const v=document.getElementById('todoAssigneeFilter')?.value||'Beide';
+  return ['Beide','Benjamin','Malik'].includes(v)?v:'Beide';
+}
+function todoMatchesFilter(assignee,filter){ return filter==='Beide' || assignee===filter || assignee==='Beide'; }
+function openTodoModal(id=null){
+  const modal=document.getElementById('todoModal'); if(!modal)return;
+  const edit=document.getElementById('todoEditId'), text=document.getElementById('todoText'), assignee=document.getElementById('todoAssignee'), title=document.getElementById('todoModalTitle');
+  const todo=id!=null?state.todos.find(t=>String(t.id)===String(id)):null;
+  if(id!=null&&!todo){showToast('To-Do wurde nicht gefunden.');return;}
+  edit.value=todo?String(todo.id):''; text.value=todo?.text||''; assignee.value=todo?.assignee||'Beide'; title.textContent=todo?'To-Do bearbeiten':'To-Do hinzufügen'; modal.classList.add('open');
+  setTimeout(()=>text.focus(),0);
+}
+function saveTodo(e){
+  if(e)e.preventDefault();
+  const editId=document.getElementById('todoEditId').value.trim();
+  const textValue=document.getElementById('todoText').value.trim();
+  const assignee=document.getElementById('todoAssignee').value;
+  if(!textValue){alert('Bitte ein To-Do eingeben.');return false;}
+  if(!['Beide','Benjamin','Malik'].includes(assignee)){alert('Bitte eine gültige Zuständigkeit auswählen.');return false;}
+  if(editId){
+    const t=state.todos.find(x=>String(x.id)===editId);
+    if(!t){alert('Das To-Do wurde nicht gefunden.');return false;}
+    t.text=textValue;t.assignee=assignee;audit('hat das To-Do „'+textValue+'“ bearbeitet');
+  }else{
+    const id=Date.now()+Math.floor(Math.random()*1000);
+    state.todos.push({id,text:textValue,assignee,createdAt:new Date().toISOString()});
+    audit('hat das To-Do „'+textValue+'“ angelegt');
+  }
+  saveState();closeModal('todoModal');renderTodos();showToast(editId?'To-Do gespeichert.':'To-Do hinzugefügt.');return false;
+}
+function deleteTodo(id){
+  const t=state.todos.find(x=>String(x.id)===String(id)); if(!t)return;
+  if(!confirm('To-Do „'+t.text+'“ wirklich löschen?'))return;
+  state.todos=state.todos.filter(x=>String(x.id)!==String(id));audit('hat das To-Do „'+t.text+'“ gelöscht');saveState();renderTodos();showToast('To-Do gelöscht.');
+}
+function todoKey(t){return String(t.type)+':'+String(t.id);}
+function applyTodoOrder(rows){const order=Array.isArray(state.todoOrder)?state.todoOrder.map(String):[];const rank=new Map(order.map((k,i)=>[k,i]));return rows.map((t,i)=>({t,i,r:rank.has(todoKey(t))?rank.get(todoKey(t)):100000+i})).sort((a,b)=>a.r-b.r||a.i-b.i).map(x=>x.t);}
+let todoDrag={key:null,hold:null,dragging:false,started:false,scrollRaf:null,scrollY:0};
+let todoAnimateNext=false;
+function todoAutoScroll(clientY){
+  const edge=90, maxSpeed=14;
+  const h=window.innerHeight||document.documentElement.clientHeight;
+  let speed=0;
+  if(clientY<edge) speed=-Math.ceil((edge-clientY)/edge*maxSpeed);
+  else if(clientY>h-edge) speed=Math.ceil((clientY-(h-edge))/edge*maxSpeed);
+  todoDrag.scrollY=speed;
+  if(speed&&!todoDrag.scrollRaf){
+    const step=()=>{
+      if(!todoDrag.dragging||!todoDrag.scrollY){todoDrag.scrollRaf=null;return;}
+      window.scrollBy(0,todoDrag.scrollY);
+      todoDrag.scrollRaf=requestAnimationFrame(step);
+    };
+    todoDrag.scrollRaf=requestAnimationFrame(step);
+  }
+}
+function stopTodoAutoScroll(){
+  todoDrag.scrollY=0;
+  if(todoDrag.scrollRaf)cancelAnimationFrame(todoDrag.scrollRaf);
+  todoDrag.scrollRaf=null;
+}
+const TODO_MOVE_MS=260;
+const TODO_EASE='cubic-bezier(.2,.75,.25,1)';
+
+function animateTodoDomMove(box, movedItem, targetItem, before){
+  const items=[...box.querySelectorAll('.todo-item[data-todo-key]')];
+  const first=new Map(items.map(el=>[el.dataset.todoKey,el.getBoundingClientRect()]));
+  if(before) box.insertBefore(movedItem,targetItem); else box.insertBefore(movedItem,targetItem.nextSibling);
+  const changed=[...box.querySelectorAll('.todo-item[data-todo-key]')];
+  changed.forEach(el=>{
+    if(el===movedItem)return;
+    const prev=first.get(el.dataset.todoKey);if(!prev)return;
+    const now=el.getBoundingClientRect();
+    const dx=prev.left-now.left,dy=prev.top-now.top;
+    if(Math.abs(dx)<1&&Math.abs(dy)<1)return;
+    el.animate([
+      {transform:`translate3d(${dx}px,${dy}px,0)`},
+      {transform:'translate3d(0,0,0)'}
+    ],{duration:TODO_MOVE_MS,easing:TODO_EASE,fill:'both'});
+  });
+}
+
+function persistVisibleTodoOrder(){
+  const box=document.getElementById('todoList');if(!box)return;
+  const visible=[...box.querySelectorAll('.todo-item[data-todo-key]')].map(x=>x.dataset.todoKey);
+  const visibleSet=new Set(visible);
+  const existing=Array.isArray(state.todoOrder)?state.todoOrder.map(String):[];
+  state.todoOrder=[...visible,...existing.filter(k=>!visibleSet.has(k))];
+  saveState();
+}
+
+function setupTodoDrag(){
+  const box=document.getElementById('todoList');if(!box)return;
+  box.querySelectorAll('.todo-handle').forEach(h=>{
+    h.onpointerdown=e=>{
+      const item=h.closest('.todo-item');if(!item)return;
+      todoDrag={key:item.dataset.todoKey,hold:null,dragging:false,started:false};
+      clearTimeout(todoDrag.hold);
+      todoDrag.hold=setTimeout(()=>{
+        todoDrag.dragging=true;todoDrag.started=true;
+        item.classList.add('todo-dragging');
+        h.setPointerCapture?.(e.pointerId);
+      },280);
+    };
+    h.onpointermove=e=>{
+      if(!todoDrag.dragging)return;
+      todoAutoScroll(e.clientY);
+      const item=box.querySelector(`.todo-item[data-todo-key="${CSS.escape(todoDrag.key)}"]`);
+      if(!item)return;
+      const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('#todoList .todo-item');
+      if(!target||target===item)return;
+      const rect=target.getBoundingClientRect();
+      const before=e.clientY < rect.top + rect.height/2;
+      const current=[...box.querySelectorAll('.todo-item[data-todo-key]')];
+      const ti=current.indexOf(target),ii=current.indexOf(item);
+      if((before&&ii===ti-1)||(!before&&ii===ti+1))return;
+      animateTodoDomMove(box,item,target,before);
+      box.querySelectorAll('.todo-drag-over').forEach(x=>x.classList.remove('todo-drag-over'));
+      target.classList.add('todo-drag-over');
+    };
+    h.onpointerup=e=>{
+      clearTimeout(todoDrag.hold);
+      stopTodoAutoScroll();
+      const wasDragging=todoDrag.dragging;
+      if(wasDragging){
+        const item=box.querySelector(`.todo-item[data-todo-key="${CSS.escape(todoDrag.key)}"]`);
+        item?.classList.remove('todo-dragging');
+        box.querySelectorAll('.todo-drag-over').forEach(x=>x.classList.remove('todo-drag-over'));
+        persistVisibleTodoOrder();
+      }
+      todoDrag={key:null,hold:null,dragging:false,started:false};
+    };
+    h.onpointercancel=h.onpointerup;
+  });
+}
+
+function renderTodos(){
+  const box=document.getElementById('todoList');if(!box)return;const filter=getTodoFilterValue();
+  const animate=todoAnimateNext;todoAnimateNext=false;
+  const first=new Map();
+  if(animate) box.querySelectorAll('.todo-item[data-todo-key]').forEach(el=>first.set(el.dataset.todoKey,el.getBoundingClientRect()));
+  const openOrders=state.orders.filter(o=>!isOrderCompleted(o)).map(o=>({type:'order',id:o.id,text:'Auftrag #'+formatOrderId(o.id)+' – '+(o.desc||'Auftrag'),meta:customerName(o.customer)+' · '+normalizeStatus(o.status),assignee:'Beide',action:'openOrder('+JSON.stringify(o.id)+')'}));
+  const dueParts=state.parts.filter(p=>isStockSalesPart(p)&&stockSalesDueState(p).fällig).map(p=>({type:'part',id:p.id,text:'Teil – '+(p.name||'Unbenannt'),meta:(getPartAreas(p).join(' / ')||'Lager/Verkauf')+' · '+stockSalesDueState(p).reason,assignee:'Beide',action:'openPartModal('+JSON.stringify(p.id)+')'}));
+  const manual=state.todos.filter(t=>todoMatchesFilter(t.assignee,filter)).map(t=>({type:'manual',id:t.id,text:t.text,meta:'Eigenes To-Do',assignee:t.assignee,manual:true}));
+  const rows=applyTodoOrder([...openOrders,...dueParts].filter(t=>todoMatchesFilter(t.assignee,filter)).concat(manual));
+  if(!rows.length){box.innerHTML='<div class="card muted">Keine To-Dos für diesen Filter vorhanden.</div>';return;}
+  box.innerHTML=rows.map(t=>`<div class="card todo-item ${t.type==='order'?'todo-order':t.type==='part'?'todo-part':'todo-manual'}" data-todo-key="${esc(todoKey(t))}"><button type="button" class="todo-handle" aria-label="To-Do verschieben" title="Gedrückt halten und verschieben"><span></span><span></span><span></span></button><div class="todo-main"><div class="todo-title">${esc(t.text)}</div><div class="muted">${esc(t.meta)}</div></div><span class="todo-assignee">${t.assignee==='Beide'?'Beide':esc(t.assignee)}</span><div class="todo-actions">${t.action?`<button class="btn secondary" onclick="${t.action}">Öffnen</button>`:''}${t.manual?`<button class="btn secondary" onclick="openTodoModal(${JSON.stringify(t.id)})">Bearbeiten</button><button class="btn danger" onclick="deleteTodo(${JSON.stringify(t.id)})">Löschen</button>`:''}</div></div>`).join('');
+  setupTodoDrag();
+  if(animate&&first.size){
+    requestAnimationFrame(()=>{
+      const moved=[];
+      box.querySelectorAll('.todo-item[data-todo-key]').forEach(el=>{
+        const prev=first.get(el.dataset.todoKey);if(!prev)return;
+        const now=el.getBoundingClientRect();const dx=prev.left-now.left,dy=prev.top-now.top;
+        if(Math.abs(dx)>1||Math.abs(dy)>1){
+          el.style.transition='none';
+          el.style.transform=`translate3d(${dx}px, ${dy}px, 0)`;
+          moved.push(el);
+        }
+      });
+      if(!moved.length)return;
+      requestAnimationFrame(()=>{
+        moved.forEach(el=>{
+          el.style.transition=`transform ${TODO_MOVE_MS}ms ${TODO_EASE}`;
+          el.style.transform='translate3d(0, 0, 0)';
+          el.addEventListener('transitionend',()=>{
+            el.style.transition='';el.style.transform='';
+          },{once:true});
+        });
+      });
+    });
+  }
+}
+
+function render(){
+  if(document.getElementById('currentUserLabel')) currentUserLabel.textContent=currentUser?'Angemeldet als '+currentUser:'';
+  renderAudit();
+  renderExpenseComparison();
+  const dashOrdersEl=document.getElementById("dashOrders"); if(dashOrdersEl){ const openOrders=state.orders.filter(o=>!isOrderCompleted(o)).sort((a,b)=>Number(b.id)-Number(a.id)); dashOrdersEl.innerHTML=openOrders.map(o=>`<div class="dashboard-order-item" onclick="openOrder(${o.id})"><div class="row"><strong>#${formatOrderId(o.id)}</strong><span class="badge ${statusClass(normalizeStatus(o.status))}">${normalizeStatus(o.status)}</span></div><div class="desc">${esc(o.desc||"Auftrag")}</div><div class="row muted"><span>${esc(customerName(o.customer))}</span><span>${money(o.total)}</span></div></div>`).join("")||'<div class="muted">Keine offenen Aufträge vorhanden.</div>'; }
+  // Nur der aktuell sichtbare Bereich steuert seine Liste. Beim Öffnen eines
+  // Bereichs setzt showView die Suche zurück und baut die komplette Liste auf.
+  const activeView=document.querySelector('.view.active')?.id;
+  if(activeView==='orders') renderOrders(document.getElementById('orderSearch')?.value||'');
+  if(activeView==='todos') renderTodos();
+  if(activeView==='inventory') renderParts(document.getElementById('partSearch')?.value||'');
+  if(activeView==='stockSales') renderStockSales(document.getElementById('stockSalesSearch')?.value||'');
+  if(activeView==='customers') renderCustomers(document.getElementById('customerSearch')?.value||'');
+  renderInvoices();
+statOrders.textContent=state.orders.filter(o=>!isOrderCompleted(o)).length;if(document.getElementById('statCompletedOrders'))document.getElementById('statCompletedOrders').textContent=state.orders.filter(isOrderCompleted).length;if(document.getElementById('statOpenValue'))document.getElementById('statOpenValue').textContent=money(state.orders.filter(o=>!isOrderCompleted(o)).reduce((a,o)=>a+(Number(o.total)||0),0));statCustomers.textContent=state.customers.length;statInvoices.textContent=money(state.invoices.filter(i=>['Offen','Geschrieben','Gestellt'].includes(String(i.status||'Offen'))).reduce((a,i)=>a+i.amount,0));statStock.textContent=money(state.parts.reduce((a,p)=>a+p.price*p.qty,0));if(document.getElementById('statParts'))document.getElementById('statParts').textContent=state.parts.reduce((a,p)=>a+(Number(p.qty)||0),0);if(document.getElementById('statVehicles'))document.getElementById('statVehicles').textContent=state.customers.reduce((a,c)=>a+(Array.isArray(c.vehicles)?c.vehicles.length:0),0)}
+loadState();
+currentUser=localStorage.getItem(SESSION_KEY)||null;
+render();
+</script>
+
+<script>
+/* Robuste Lager-Funktionen – explizite DOM-Zugriffe für GitHub/Browser */
+(function(){
+  const $=id=>document.getElementById(id);
+  window.openPartModal=function(id=null){
+  const currentView=document.querySelector('.view.active')?.id||'inventory';
+  const existingPart=id!=null ? state.parts.find(x=>String(x.id)===String(id)) : null;
+  const targetModule=(id!=null ? (existingPart && isStockSalesPart(existingPart) ? 'stockSales' : 'inventory') : (currentView==='stockSales'?'stockSales':'inventory'));
+  const targetLabel=targetModule==='stockSales'?'Lager/Verkauf':'Lager';
+  const categoryWrap=document.getElementById('partCategoryWrap');
+  const assignmentWrap=document.getElementById('partAreaAssignmentWrap');
+  if(categoryWrap) categoryWrap.style.display=targetModule==='stockSales'?'none':'block';
+  if(assignmentWrap) assignmentWrap.style.display=targetModule==='stockSales'?'block':'none';
+  const moduleEl=document.getElementById('partTargetModule'); if(moduleEl) moduleEl.value=targetModule;
+    if(id!==null) editedPartId=Number(id); else editedPartId=null;
+    const edit=$('partEditId'), title=$('partModalTitle'), btn=$('partSaveBtn');
+    const p=id!==null?state.parts.find(x=>String(x.id)===String(id)):null;
+    if(id!==null && !p){ alert('Das Teil wurde nicht gefunden.'); return; }
+    edit.value=p?p.id:'';
+    title.textContent=p?'Teil bearbeiten':'Teil hinzufügen';
+    btn.textContent=p?'Änderungen speichern':'Teil hinzufügen';
+    $('partName').value=p?.name||'';
+    $('partNumber').value=p?.partNumber||'';
+    $('partPrice').value=p?.price??'';
+    $('partCost').value=p?.cost??'';
+    $('partQty').value=p?.qty??0;
+    $('partCategory').value=p?.category||'Allgemeines';
+    const partAreas=Array.isArray(p?.areas)?p.areas:(p?.area?[p.area]:[]);
+    $('partAreaSelect').value=partAreas.includes('Verkauf')?'Verkauf':'Lager';
+    $('partNeedsPlacement').checked=!!p?.needsPlacement;
+    $('partPlacementDue').value=p?.placementDue||'';
+    toggleSalesTodoFields();
+    $('partImg').value=p?.img||'';
+    $('partImgFile').value='';
+    showPartPreview(p?.img||'');
+    const editActions=$('partEditActions'); if(editActions) editActions.style.display=p?'grid':'none';
+    $('partModal').classList.add('open');
+  };
+
+  window.bookPartFromEdit=function(){
+    const id=$('partEditId').value;
+    if(!id){ alert('Bitte zuerst ein vorhandenes Kundenlagerteil öffnen.'); return; }
+    $('partModal').classList.remove('open');
+    openQuickStock(Number(id),'add');
+  };
+  window.deletePartFromEdit=function(){
+    const id=$('partEditId').value;
+    if(!id){ alert('Bitte zuerst ein vorhandenes Kundenlagerteil öffnen.'); return; }
+    $('partModal').classList.remove('open');
+    deletePart(Number(id));
+  };
+
+  window.savePart=function(e){
+    if(e) e.preventDefault();
+    const editId=$('partEditId').value;
+    const name=$('partName').value.trim();
+    const partNumber=$('partNumber').value.trim();
+    const price=Number($('partPrice').value);
+    const cost=Number($('partCost').value);
+    const qty=Number($('partQty').value);
+    const category=$('partCategory').value;
+    const allowedCategories=["VAG","BMW Group","Mercedes-Benz Group","Stellantis","Weitere","Allgemeines","Flüssigkeiten"];
+    const areas=[];
+    const targetModule=document.getElementById("partTargetModule")?.value||"inventory";
+    if(targetModule==="stockSales"){
+      const selectedArea=document.getElementById("partAreaSelect")?.value||"";
+      if(selectedArea) areas.push(selectedArea);
+    } else {
+      areas.push("Lager");
+    }
+    const isSaleArea=targetModule==='stockSales' && areas.includes('Verkauf');
+    const needsPlacement=isSaleArea && document.getElementById('partNeedsPlacement')?.checked===true;
+    const placementDue=isSaleArea ? (document.getElementById('partPlacementDue')?.value||'') : '';
+    if(targetModule==='stockSales' && areas.includes('Verkauf') && !needsPlacement && !placementDue){ alert('Bitte entweder ein Datum bei „Reingestellt bis“ eintragen oder „Muss noch reingestellt werden“ ankreuzen.'); return false; }
+    const img=$('partImg').value||'';
+    if(!name){ alert('Bitte eine Bezeichnung eingeben.'); return false; }
+    if(targetModule!=="stockSales" && !allowedCategories.includes(category)){ alert('Bitte einen Bereich auswählen.'); return false; }
+    if(targetModule==="stockSales" && !areas.length){ alert('Bitte mindestens „Lager“ oder „Verkauf“ auswählen.'); return false; }
+    if(!Number.isFinite(price)||price<0){ alert('Bitte einen gültigen Verkaufspreis eingeben.'); return false; }
+    if(!Number.isFinite(cost)||cost<0){ alert('Bitte einen gültigen Einkaufspreis eingeben.'); return false; }
+    if(!Number.isInteger(qty)||qty<0){ alert('Der Bestand muss eine ganze Zahl ab 0 sein.'); return false; }
+    if(editId){
+      const p=state.parts.find(x=>String(x.id)===String(editId));
+      if(!p){ alert('Das zu bearbeitende Teil wurde nicht gefunden.'); return false; }
+      const oldName=p.name;
+      Object.assign(p,{name,partNumber,price,cost,qty,img,category:(targetModule==="stockSales"?"Allgemeines":category),areas,module:targetModule,needsPlacement,placementDue});
+      audit('hat das Kundenlagerteil „'+oldName+'“ bearbeitet');
+    }else{
+      const nextId=state.parts.reduce((m,p)=>Math.max(m,Number(p.id)||0),0)+1;
+      state.parts.push({id:nextId,name,partNumber,price,cost,qty,img,category:(targetModule==="stockSales"?"Allgemeines":category),areas,module:targetModule,needsPlacement,placementDue});
+      audit('hat das Kundenlagerteil „'+name+'“ angelegt');
+    }
+    // Speichern für Teile verifizieren: saveState() fängt ältere localStorage-Fehler intern ab.
+    // Deshalb prüfen wir hier zusätzlich, ob der gespeicherte Datensatz tatsächlich zurückgelesen werden kann.
+    try{
+      saveState();
+      const persisted=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
+      const persistedParts=Array.isArray(persisted.parts)?persisted.parts:[];
+      const savedPart=persistedParts.find(x=>String(x.id)===String(editId||nextId));
+      if(!savedPart){
+        throw new Error('Teil wurde nicht im lokalen Speicher gefunden.');
+      }
+    }catch(err){
+      console.error('Speicherfehler beim Teil:',err);
+      alert('Das Teil konnte nicht zuverlässig gespeichert werden. Bitte Speicherplatz des Browsers prüfen.');
+      return false;
+    }
+    $('partModal').classList.remove('open');
+    editedPartId=null;
+    render();
+    showToast(editId?'Teil wurde gespeichert.':'Teil wurde hinzugefügt.');
+    return false;
+  };
+
+  /* Submit-Ereignis zusätzlich direkt binden, damit es auch ohne Inline-Handler funktioniert. */
+  const form=$('partModal').querySelector('form');
+  form.onsubmit=window.savePart;
+
+  window.showPartPreview=function(src){
+    const preview=$('partPreview');
+    preview.src=src||'';
+    preview.style.display=src?'block':'none';
+  };
+
+  /* Sicheres Speichern: alte Daten bleiben erhalten, wenn der Browser-Speicher voll ist. */
+  const originalSaveState=window.saveState;
+  window.saveState=function(){
+    try{ originalSaveState(); }
+    catch(err){ console.error('Speicherfehler',err); throw err; }
+  };
+
+  render();
+})();
+</script>
+
+
+
+
+
+<style>
+/* Lager-Bereiche und Filter */
+.inventory-category-filter{
+  display:flex;align-items:center;gap:6px;margin:0 0 12px 0;
+}
+.inventory-category-filter label{font-size:12px;font-weight:600;color:var(--muted)}
+#inventoryCategoryFilter{
+  width:auto;min-width:105px;font-size:12px!important;padding:5px 8px!important;min-height:34px!important;
+}
+.part-category-badge{
+  display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;
+  background:#302820;color:var(--muted);font-size:11px;font-weight:700;
+}
+.part-card-image-wrap{
+  height:120px;background:#08120c;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;overflow:hidden;border:1px solid var(--line);
+}
+.part-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
+.part-card-head h3{margin:0}
+.part-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.part-card-actions .btn{width:100%}
+.part-sub-actions{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px}.part-sub-actions-visible{animation:subActionsIn .22s ease both}@keyframes subActionsIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.vehicle-details summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;min-height:44px}
+.vehicle-details summary::-webkit-details-marker{display:none}
+.vehicle-summary-arrow{font-size:24px;transition:transform .2s}
+.vehicle-details[open] .vehicle-summary-arrow{transform:rotate(90deg)}
+.vehicle-expanded{padding-top:12px;margin-top:8px;border-top:1px solid var(--line)}
+#customerDetailModal .modalbox{overflow-y:auto;max-height:calc(100dvh - 20px);padding-bottom:70px;scroll-padding-bottom:100px}
+#customerDetailContent{padding-bottom:70px}
+.vehicle-add-form .actions{position:sticky;bottom:0;z-index:3;background:var(--panel);padding:10px 0 6px;margin-top:12px;border-top:1px solid var(--line)}
+.vehicle-add-form .actions .btn{width:100%;min-height:46px}
+.vehicle-add-form{scroll-margin-bottom:120px}
+.vehicle-actions .btn{flex:1 1 180px}
+@media(max-width:600px){
+  .inventory-category-filter{justify-content:flex-start;margin-top:-4px}
+  #inventoryCategoryFilter{min-height:38px!important}
+  .part-card-actions{grid-template-columns:1fr}
+  .part-sub-actions{grid-template-columns:1fr 1fr}
+  .vehicle-grid{grid-template-columns:1fr}
+  .vehicle-grid .full{grid-column:auto}
+}
+.compare-edit{white-space:nowrap}
+
+</style>
+<script>
+(function(){
+  const CATEGORIES=["VAG","BMW Group","Mercedes-Benz Group","Stellantis","Weitere","Allgemeines","Flüssigkeiten"];
+  function initInventory(){
+    const root=document.getElementById("inventory");
+    if(!root)return;
+    // Vorhandene ältere Filter entfernen, falls vorhanden.
+    root.querySelectorAll(".inventory-category-filter").forEach((el,i)=>{if(i>0)el.remove()});
+    if(!root.querySelector("#inventoryCategoryFilter")){
+      const filter=document.createElement("div");
+      filter.className="inventory-category-filter";
+      filter.innerHTML='<label for="inventoryCategoryFilter">Bereich:</label><select id="inventoryCategoryFilter"><option value="Alle">Alle</option>'+
+        CATEGORIES.map(c=>'<option value="'+c+'">'+c+'</option>').join("")+'</select>';
+      const toolbar=root.querySelector(".toolbar");
+      if(toolbar) toolbar.insertAdjacentElement("afterend",filter);
+      else root.insertBefore(filter,root.firstChild);
+      filter.querySelector("select").addEventListener("change",function(){
+        renderParts(document.getElementById("partSearch")?.value||"");
+      });
+    }
+    // Alte Teile ohne Bereich bekommen automatisch „Allgemeines“.
+    let changed=false;
+    state.parts.forEach(part=>{
+      if(!CATEGORIES.includes(part.category)){part.category="Allgemeines";changed=true;}
+    });
+    if(changed){try{saveState()}catch(e){}}
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initInventory);
+  else initInventory();
+})();
+
+// Neue mobile Swipe-Navigation: klare Seitenbewegung, sanftes Einrasten und keine Konflikte mit Formularen
+(function(){
+  const views=['dashboard','orders','todos','inventory','stockSales','customers','invoices','expenseComparison','audit'];
+  let sx=0,sy=0,tracking=false,locked=false;
+
+  function isSwipeBlocked(target){
+    return !!target.closest('input,textarea,select,button,a,img,video,.modalbox,.no-swipe,[contenteditable="true"]');
+  }
+
+  document.addEventListener('touchstart',e=>{
+    if(window.innerWidth>800 || e.touches.length!==1 || document.querySelector('.modal.open')) return;
+    if(isSwipeBlocked(e.target)) return;
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY; tracking=true; locked=false;
+  },{passive:true});
+
+  document.addEventListener('touchmove',e=>{
+    if(!tracking || e.touches.length!==1) return;
+    const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy;
+    if(Math.abs(dy)>Math.abs(dx)*1.15){locked=true;tracking=false;}
+  },{passive:true});
+
+  document.addEventListener('touchend',e=>{
+    if(!tracking){return;}
+    tracking=false;
+    if(locked || window.innerWidth>800 || document.querySelector('.modal.open')) return;
+    const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+    const distance=Math.abs(dx);
+    if(distance<75 || distance<Math.abs(dy)*1.35) return;
+
+    const active=document.querySelector('.view.active'); if(!active)return;
+    let current=views.indexOf(active.id);
+    if(current<0){
+      if(active.id==='orderDetail')current=1;
+      else if(active.id==='invoiceDetailView')current=4;
+    }
+    if(current<0)return;
+    const next=current+(dx<0?1:-1);
+    if(next<0||next>=views.length)return;
+
+    const nav=document.querySelectorAll('.nav button')[next];
+    if(!nav)return;
+
+    // Browser-like transition: erst Richtung setzen, dann Seite wechseln.
+    showView(views[next],nav,dx<0?'left':'right');
+    requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'smooth'}));
+  },{passive:true});
+})();</script>
+
+<style>
+.todo-list{display:grid;gap:10px}.todo-item{display:grid;grid-template-columns:32px 1fr auto auto;gap:12px;align-items:center;will-change:transform;transition:box-shadow .18s ease,opacity .18s ease,scale .18s ease;transform:translateZ(0);backface-visibility:hidden}.todo-handle{width:30px;height:38px;border:0;background:transparent;display:flex;flex-direction:column;justify-content:center;gap:4px;cursor:grab;touch-action:none;padding:4px}.todo-handle span{display:block;width:20px;height:3px;border-radius:3px;background:var(--muted)}.todo-dragging{opacity:.72;scale:1.015;box-shadow:0 10px 24px rgba(0,0,0,.14);z-index:3}.todo-drag-over{outline:2px dashed var(--accent);outline-offset:2px}.todo-title{font-weight:700;margin-bottom:4px}.todo-assignee{padding:5px 9px;border:1px solid var(--line);border-radius:999px;font-size:12px;white-space:nowrap}.todo-actions{display:flex;gap:6px;flex-wrap:wrap}.todo-actions .btn{padding:6px 9px}.todo-order{border-left:4px solid var(--accent)}.todo-part{border-left:4px solid var(--warn)}.todo-manual{border-left:4px solid var(--accent2)}@media(max-width:700px){.todo-item{grid-template-columns:32px 1fr}.todo-assignee{grid-column:2}.todo-actions{justify-content:flex-start}}
+</style>
+</body>
+</html><style id="new-green-amber-theme">
+:root{--bg:#101713!important;--panel:#1b2520!important;--panel2:#26332c!important;--line:#43554a!important;--text:#f3f0e7!important;--muted:#b6c0b9!important;--accent:#d8a24a!important;--accent2:#8fbd68!important;--danger:#df7474!important;--warn:#e2bd57!important;--success:#70c39a!important}
+body{background:var(--bg)!important;color:var(--text)!important}
+body:before{background:radial-gradient(circle at 85% 5%,rgba(216,162,74,.10),transparent 28%),radial-gradient(circle at 12% 92%,rgba(143,189,104,.08),transparent 30%)!important}
+.side{background:linear-gradient(180deg,#141d18 0%,#223027 100%)!important}
+.nav button.active,.nav button:hover{background:linear-gradient(90deg,rgba(216,162,74,.18),rgba(143,189,104,.12))!important;box-shadow:inset 3px 0 0 var(--accent)!important}
+.btn{background:linear-gradient(135deg,#d8a24a,#8fbd68)!important;color:#172016!important}
+.card,.dashboard-hero{background:linear-gradient(145deg,#1b2520,#26332c)!important;border-color:var(--line)!important}
+
+
+.customer-open-summary{margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--soft);border:1px solid var(--line);font-size:12px;}
+.customer-open-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}.customer-open-pills span{padding:4px 7px;border-radius:999px;background:var(--card);border:1px solid var(--line);}
+#openCustomerFilterBtn.active{font-weight:700;}
+
+#stockSalesTodoBtn{margin-left:8px;white-space:nowrap;}
+#stockSalesTodoBtn.active{font-weight:800;box-shadow:0 0 0 2px rgba(216,162,74,.35),0 0 14px rgba(216,162,74,.18)!important;transform:translateY(-1px);}
+
+.todo-warning{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#d93025;color:#fff;font-weight:800;font-size:15px;line-height:1;vertical-align:middle;margin-right:5px;}
+.part-todo-card{border-color:#d93025!important;}
+.todo-note{margin-top:6px;font-weight:700;color:#d93025;font-size:12px;}
+.sales-todo-fields{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--soft);}
+.checkbox-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.checkbox-row input{width:18px;height:18px;}
+@media(max-width:600px){#stockSalesTodoBtn{margin-left:0;margin-top:6px}.toolbar .left{flex-wrap:wrap}.sales-todo-fields{padding:9px;}}
+</style>
